@@ -1,47 +1,46 @@
 import 'package:flutter/material.dart';
+import 'package:oauth2_client/access_token_response.dart';
+import 'package:oauth2_client/spotify_oauth2_client.dart';
 import 'package:spotify/spotify.dart';
 import 'package:spotify_flutter/src/helpers/error_dialog';
 import 'package:url_launcher/url_launcher.dart';
 import 'dart:async';
+import 'package:oauth2_client/oauth2_client.dart';
 
 class AuthorizationService {
-  final SpotifyApiCredentials _credentials;
-  final String _redirectUri = 'myapp://auth';
+  AuthorizationService({required this.clientId, required this.clientSecret});
+  //final SpotifyApiCredentials _credentials;
 
-  AuthorizationService({required String clientId, required String clientSecret})
-      : _credentials = SpotifyApiCredentials(clientId, clientSecret);
+  final String clientId;
+  final String clientSecret;
+
+  //final String _redirectUri = 'myapp://auth';
 
   Future<void> authorizeUser(BuildContext context) async {
-    final grant = SpotifyApi.authorizationCodeGrant(_credentials);
-
-    final scopes = [
-      AuthorizationScope.user.readEmail,
-      AuthorizationScope.library.read,
-    ];
-
-    // Generate the authorization URL
-    final authUri = grant.getAuthorizationUrl(
-      Uri.parse(_redirectUri),
-      scopes: scopes,
+    AccessTokenResponse? accessToken;
+    SpotifyOAuth2Client client = SpotifyOAuth2Client(
+      customUriScheme: 'groove.check.app',
+      redirectUri: 'groove.check.app://callback',
     );
 
-    // Redirect to the Spotify authorization page
-    // Use a method to open the URL in a browser or web view
-    await _openAuthorizationUrl(authUri, context);
+    var authResp =
+        await client.requestAuthorization(clientId: clientId, customParams: {
+      'show_dialog': 'true'
+    }, scopes: [
+      AuthorizationScope.user.readEmail,
+      AuthorizationScope.library.read,
+    ]);
 
-    // After redirect, capture the response URI and handle the callback
-    /*
-    final responseUri = await _listenForRedirectUri();
+    var authCode = authResp.code;
 
-    if (responseUri != null) {
-      final spotify =
-          SpotifyApi.fromAuthCodeGrant(grant, responseUri.toString());
-      // Now you can use the `spotify` instance to fetch user data
-      // For example:
-      // final user = await spotify.me();
-      // Use user data as needed
-    }
-    */
+    accessToken = await client.requestAccessToken(
+        code: authCode.toString(),
+        clientId: clientId,
+        clientSecret: clientSecret);
+
+    // Global variables
+    final Access_Token = accessToken.accessToken;
+    final Refresh_Token = accessToken.refreshToken;
   }
 
   Future<void> _openAuthorizationUrl(Uri authUri, BuildContext context) async {
