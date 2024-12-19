@@ -1,0 +1,14 @@
+[
+    {
+        "relation": [
+            "delegate_permission/common.handle_all_urls"
+        ],
+        "target": {
+            "namespace": "android_app",
+            "package_name": "com.example.spotify_flutter",
+            "sha256_cert_fingerprints": [
+                "2B:5A:E5:1F:91:66:9B:52:6F:A3:DF:4A:84:4E:0A:DB:99:E5:4E:65:21:89:EE:6C:C9:71:CC:E5:E1:AF:F5:66"
+            ]
+        }
+    }
+]

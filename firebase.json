@@ -1,0 +1,11 @@
+{
+  "hosting": {
+    "public": "app_links_hosting",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ],
+    "rewrites": []
+  }
+}
