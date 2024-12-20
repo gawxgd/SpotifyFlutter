@@ -6,69 +6,85 @@ import 'package:spotify_flutter/src/helpers/error_dialog';
 import 'package:url_launcher/url_launcher.dart';
 import 'dart:async';
 import 'package:oauth2_client/oauth2_client.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:oauth2_client/oauth2_helper.dart';
+import 'package:http/http.dart' as http;
 
 class AuthorizationService {
-  AuthorizationService({required this.clientId, required this.clientSecret});
-  //final SpotifyApiCredentials _credentials;
+  AuthorizationService({
+    required this.clientId,
+    required this.clientSecret,
+    required this.redirectUri,
+    required this.customUriScheme,
+  });
 
   final String clientId;
   final String clientSecret;
 
-  //final String _redirectUri = 'myapp://auth';
+  final String redirectUri;
+  final String customUriScheme;
 
   Future<void> authorizeUser(BuildContext context) async {
-    AccessTokenResponse? accessToken;
     SpotifyOAuth2Client client = SpotifyOAuth2Client(
-      customUriScheme: 'groove.check.app',
-      redirectUri: 'groove.check.app://callback',
+      customUriScheme: customUriScheme,
+      redirectUri: redirectUri,
     );
 
-    var authResp =
-        await client.requestAuthorization(clientId: clientId, customParams: {
-      'show_dialog': 'true'
-    }, scopes: [
-      AuthorizationScope.user.readEmail,
-      AuthorizationScope.library.read,
-    ]);
+    try {
+      OAuth2Helper oauth2Helper = OAuth2Helper(client,
+          grantType: OAuth2Helper.authorizationCode,
+          clientId: clientId,
+          clientSecret: clientSecret,
+          scopes: [
+            'user-read-private',
+            'user-read-playback-state',
+            'user-modify-playback-state',
+            'user-read-currently-playing',
+            'user-read-email'
+          ]);
+      final tokenResponse = await oauth2Helper.getToken();
 
-    var authCode = authResp.code;
+      if (tokenResponse != null) {
+        final accessToken = tokenResponse.accessToken!;
 
-    accessToken = await client.requestAccessToken(
-        code: authCode.toString(),
-        clientId: clientId,
-        clientSecret: clientSecret);
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(accessToken.toString())));
 
-    // Global variables
-    final Access_Token = accessToken.accessToken;
-    final Refresh_Token = accessToken.refreshToken;
-  }
+        final spotify = SpotifyApi.withAccessToken(accessToken.toString());
 
-  Future<void> _openAuthorizationUrl(Uri authUri, BuildContext context) async {
-    if (await canLaunchUrl(authUri)) {
-      await launchUrl(authUri);
-    } else {
-      showErrorDialog(context, 'cannot open url');
+        http.Response resp =
+            await oauth2Helper.get('https://api.spotify.com/v1/me');
+
+        if (resp.statusCode == 200) {
+          ScaffoldMessenger.of(context)
+              .showSnackBar(SnackBar(content: Text(resp.body.toString())));
+        } else {
+          debugPrint(resp.statusCode.toString() + resp.body);
+        }
+
+        final user = await spotify.me.get();
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(user.toString())));
+      }
+    } catch (error) {
+      debugPrint('Authorization error: $error');
+
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Authorization failed: $error')),
+        );
+      }
     }
   }
 
-/*
-  Future<Uri?> _listenForRedirectUri() async {
-     Completer<Uri?> completer = Completer();
-
-  // Use a method channel or listen to URL changes to capture the redirect URI
-  // This can be done via a stream, URL scheme handler, or deep linking approach
-  StreamSubscription<Uri> subscription;
-
-  // Listen for events that match the redirect URI scheme
-  subscription = uriStreamController.stream.listen((uri) {
-    if (uri != null && uri.scheme == 'myapp') { // Replace 'myapp' with your custom scheme
-      subscription.cancel(); // Stop listening
-      completer.complete(uri); // Complete the future with the captured URI
+  Future<void> saveAccessToken({
+    required String accessToken,
+    String? refreshToken,
+  }) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('access_token', accessToken);
+    if (refreshToken != null) {
+      await prefs.setString('refresh_token', refreshToken);
     }
-  });
-
-  // Return the result of the listener as a Future
-  return completer.future;
   }
-  */
 }
