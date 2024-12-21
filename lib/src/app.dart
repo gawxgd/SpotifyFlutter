@@ -85,30 +85,28 @@ class _MyAppState extends State<MyApp> {
               leading: const Icon(Icons.home),
               title: const Text(HomeView.name),
               onTap: () {
-                Navigator.of(context).pushReplacementNamed(HomeView.routeName);
+                Navigator.of(context).popAndPushNamed(HomeView.routeName);
               },
             ),
             ListTile(
               leading: const Icon(Icons.settings),
               title: const Text(SettingsView.name),
               onTap: () {
-                Navigator.of(context)
-                    .pushReplacementNamed(SettingsView.routeName);
+                Navigator.of(context).popAndPushNamed(SettingsView.routeName);
               },
             ),
             ListTile(
               leading: const Icon(Icons.person),
               title: const Text(ProfileView.name),
               onTap: () {
-                Navigator.of(context)
-                    .pushReplacementNamed(ProfileView.routeName);
+                Navigator.of(context).popAndPushNamed(ProfileView.routeName);
               },
             ),
             ListTile(
               leading: const Icon(Icons.bar_chart),
               title: const Text(StatsView.name),
               onTap: () {
-                Navigator.of(context).pushReplacementNamed(StatsView.routeName);
+                Navigator.of(context).popAndPushNamed(StatsView.routeName);
               },
             ),
           ],
