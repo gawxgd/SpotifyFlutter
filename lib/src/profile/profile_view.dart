@@ -1,15 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:spotify/spotify.dart';
 import 'package:spotify_flutter/src/authorization/authorization_view.dart';
-import 'package:spotify_flutter/src/settings/settings_view.dart';
 import 'package:spotify_flutter/src/stats/stats_view.dart';
-import 'package:url_launcher/url_launcher.dart';
 import 'profile_controller.dart';
 
 class ProfileView extends StatefulWidget {
   const ProfileView({super.key});
 
   static const String routeName = '/profile';
+  static const String name = 'Profile';
 
   @override
   State<ProfileView> createState() => _ProfileViewState();
@@ -42,10 +41,6 @@ class _ProfileViewState extends State<ProfileView> {
         SnackBar(content: Text('Error: $e')),
       );
     }
-  }
-
-  void _navigateToSettings() {
-    Navigator.pushNamed(context, SettingsView.routeName);
   }
 
   Future<void> _logout() async {
@@ -91,16 +86,6 @@ class _ProfileViewState extends State<ProfileView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Spotify Profile'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.settings),
-            onPressed: _navigateToSettings,
-            tooltip: 'Settings',
-          ),
-        ],
-      ),
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
           : userProfile != null
@@ -162,7 +147,7 @@ class _ProfileViewState extends State<ProfileView> {
                       const SizedBox(height: 20),
                       // Logout Button
                       ElevatedButton.icon(
-                        icon: const Icon(Icons.data_array),
+                        icon: const Icon(Icons.bar_chart),
                         label: const Text('View your stats'),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Theme.of(context).primaryColor,

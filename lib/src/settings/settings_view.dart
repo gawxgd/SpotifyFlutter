@@ -11,14 +11,13 @@ class SettingsView extends StatelessWidget {
 
   static const routeName = '/settings';
 
+  static const name = 'Settings';
+
   final SettingsController controller;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Settings'),
-      ),
       body: Padding(
         padding: const EdgeInsets.all(16),
         // Glue the SettingsController to the theme selection DropdownButton.

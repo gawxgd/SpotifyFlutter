@@ -6,6 +6,8 @@ class StatsView extends StatefulWidget {
 
   static const String routeName = '/stats';
 
+  static const String name = 'Spotify stats';
+
   @override
   StatsViewState createState() => StatsViewState();
 }
@@ -45,18 +47,6 @@ class StatsViewState extends State<StatsView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Top Stats'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.settings),
-            onPressed: () {
-              // Navigate to settings
-              Navigator.pushNamed(context, '/settings');
-            },
-          ),
-        ],
-      ),
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
           : SingleChildScrollView(

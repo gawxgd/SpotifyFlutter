@@ -43,7 +43,7 @@ class AuthorizationService {
           scopes: scopes);
 
       // for testo
-      await oAuth2Helper.removeAllTokens();
+      //await oAuth2Helper.removeAllTokens();
 
       final tokenResponse = await oAuth2Helper.getToken();
 
