@@ -21,7 +21,8 @@ void setupAuthorizationService() {
         'user-read-playback-state',
         'user-modify-playback-state',
         'user-read-currently-playing',
-        'user-read-email'
+        'user-read-email',
+        'user-top-read',
       ],
     ),
   );
@@ -38,4 +39,11 @@ void updateSpotifyApi(SpotifyApi spotifyApi) {
     getIt.unregister<SpotifyApi>();
   }
   getIt.registerSingleton<SpotifyApi>(spotifyApi);
+}
+
+T? getService<T extends Object>() {
+  if (getIt.isRegistered<T>()) {
+    return getIt<T>();
+  }
+  return null;
 }

@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:spotify/spotify.dart';
+import 'package:spotify_flutter/src/authorization/authorization_view.dart';
+import 'package:spotify_flutter/src/settings/settings_view.dart';
+import 'package:spotify_flutter/src/stats/stats_view.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'profile_controller.dart';
 
@@ -42,12 +45,12 @@ class _ProfileViewState extends State<ProfileView> {
   }
 
   void _navigateToSettings() {
-    Navigator.pushNamed(context, '/settings');
+    Navigator.pushNamed(context, SettingsView.routeName);
   }
 
   Future<void> _logout() async {
     await _controller.logout();
-    Navigator.pushReplacementNamed(context, '/login');
+    Navigator.pushReplacementNamed(context, AuthorizationView.routeName);
   }
 
   Future<void> _openSpotifyProfile() async {
@@ -155,6 +158,23 @@ class _ProfileViewState extends State<ProfileView> {
                           ),
                         ),
                         onPressed: _openSpotifyProfile,
+                      ),
+                      const SizedBox(height: 20),
+                      // Logout Button
+                      ElevatedButton.icon(
+                        icon: const Icon(Icons.data_array),
+                        label: const Text('View your stats'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Theme.of(context).primaryColor,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 24, vertical: 12),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                        onPressed: () =>
+                            Navigator.pushNamed(context, StatsView.routeName),
                       ),
                       const SizedBox(height: 20),
                       // Logout Button

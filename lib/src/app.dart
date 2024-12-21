@@ -7,6 +7,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:spotify_flutter/src/authorization/authorization_controller.dart';
 import 'package:spotify_flutter/src/authorization/authorization_view.dart';
 import 'package:spotify_flutter/src/profile/profile_view.dart';
+import 'package:spotify_flutter/src/stats/stats_view.dart';
 
 import 'sample_feature/sample_item_details_view.dart';
 import 'sample_feature/sample_item_list_view.dart';
@@ -136,6 +137,9 @@ class _MyAppState extends State<MyApp> {
 
                   case ProfileView.routeName:
                     return const ProfileView();
+
+                  case StatsView.routeName:
+                    return const StatsView();
 
                   default:
                     return AuthorizationView(
