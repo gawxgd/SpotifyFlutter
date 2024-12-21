@@ -6,7 +6,7 @@ class AuthorizationController {
 
   final AuthorizationService service;
 
-  void startAuthorization(BuildContext context) {
-    service.authorizeUser(context);
+  Future<void> startAuthorization(BuildContext context) async {
+    await service.authorizeUser(context);
   }
 }

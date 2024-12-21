@@ -2,11 +2,18 @@ import 'package:flutter/material.dart';
 import 'package:spotify_flutter/src/authorization/authorization_controller.dart';
 
 class AuthorizationView extends StatelessWidget {
-  const AuthorizationView({super.key, required this.controller});
+  const AuthorizationView(
+      {super.key, required this.controller, required this.onSuccess});
 
   static const routeName = '/authorization';
 
   final AuthorizationController controller;
+  final VoidCallback onSuccess;
+
+  Future<void> _authorize(BuildContext context) async {
+    await controller.startAuthorization(context);
+    onSuccess(); // Call the success callback
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -60,10 +67,7 @@ class AuthorizationView extends StatelessWidget {
                     borderRadius: BorderRadius.circular(8),
                   ),
                 ),
-                onPressed: () {
-                  controller.startAuthorization(
-                      context); // Call your authorization logic here
-                },
+                onPressed: () => _authorize(context),
                 child: const Text(
                   'Login with Spotify',
                   style: TextStyle(

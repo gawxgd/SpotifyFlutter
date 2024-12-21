@@ -6,6 +6,7 @@ import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:spotify_flutter/src/authorization/authorization_controller.dart';
 import 'package:spotify_flutter/src/authorization/authorization_view.dart';
+import 'package:spotify_flutter/src/profile/profile_view.dart';
 
 import 'sample_feature/sample_item_details_view.dart';
 import 'sample_feature/sample_item_list_view.dart';
@@ -60,6 +61,10 @@ class _MyAppState extends State<MyApp> {
     _navigatorKey.currentState?.pushNamed(uri.fragment);
   }
 
+  void _onAuthorizationSuccess() {
+    _navigatorKey.currentState?.pushReplacementNamed(ProfileView.routeName);
+  }
+
   @override
   Widget build(BuildContext context) {
     // Glue the SettingsController to the MaterialApp.
@@ -70,6 +75,7 @@ class _MyAppState extends State<MyApp> {
       listenable: widget.settingsController,
       builder: (BuildContext context, Widget? child) {
         return MaterialApp(
+          navigatorKey: _navigatorKey,
           // Providing a restorationScopeId allows the Navigator built by the
           // MaterialApp to restore the navigation stack when a user leaves and
           // returns to the app after it has been killed while running in the
@@ -118,16 +124,24 @@ class _MyAppState extends State<MyApp> {
                 switch (routeSettings.name) {
                   case SettingsView.routeName:
                     return SettingsView(controller: widget.settingsController);
+
                   case SampleItemDetailsView.routeName:
                     return const SampleItemDetailsView();
+
                   case AuthorizationView.routeName:
                     return AuthorizationView(
-                        controller: widget.authorizationController);
-                  case SampleItemListView.routeName:
-                    return const SampleItemListView();
+                      controller: widget.authorizationController,
+                      onSuccess: _onAuthorizationSuccess,
+                    );
+
+                  case ProfileView.routeName:
+                    return const ProfileView();
+
                   default:
                     return AuthorizationView(
-                        controller: widget.authorizationController);
+                      controller: widget.authorizationController,
+                      onSuccess: _onAuthorizationSuccess,
+                    );
                 }
               },
             );

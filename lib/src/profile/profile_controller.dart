@@ -1,30 +1,27 @@
-// import 'package:oauth2_client/oauth2_helper.dart';
+import 'package:flutter/material.dart';
+import 'package:get_it/get_it.dart';
+import 'package:http/http.dart';
+import 'package:spotify/spotify.dart';
+import 'package:spotify_flutter/src/authorization/authorization_service.dart';
 
-// class ProfileController {
-//   final OAuth2Helper oauth2Helper;
+class ProfileController {
+  final getIt = GetIt.instance;
 
-//   ProfileController({required this.oauth2Helper});
+  Future<User?> fetchUserProfile() async {
+    try {
+      final user = await getIt<SpotifyApi>().me.get();
+      return user;
+    } catch (error) {
+      throw Exception('Failed to fetch profile: $error');
+    }
+  }
 
-//   Future<ProfileModel> fetchProfileData() async {
-//     // Use the oauth2Helper to make a Spotify API call
-//     final response = await oauth2Helper.get(
-//       'https://api.spotify.com/v1/me', // Spotify API endpoint for user profile
-//     );
+  Future<void> logout() async {
+    await getIt.unregister<SpotifyApi>();
 
-//     if (response.statusCode == 200) {
-//       final data = response.data; // Adjust based on your HTTP library
-//       return ProfileModel(
-//         displayName: data['display_name'],
-//         email: data['email'],
-//         profileImageUrl: data['images'][0]['url'],
-//       );
-//     } else {
-//       throw Exception('Failed to fetch profile data: ${response.statusCode}');
-//     }
-//   }
-
-//   Future<bool> logout() async {
-//     // Clear any saved tokens or session data as necessary
-//     return true;
-//   }
-// }
+    if (getIt.isRegistered<AuthorizationService>()) {
+      final authService = getIt<AuthorizationService>();
+      await authService.logout();
+    }
+  }
+}
