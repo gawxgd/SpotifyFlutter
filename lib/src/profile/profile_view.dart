@@ -29,7 +29,6 @@ class _ProfileViewState extends State<ProfileView> {
       final profile = await _controller.fetchUserProfile();
       setState(() {
         userProfile = profile;
-        debugPrint(userProfile!.images.toString());
         isLoading = false;
       });
     } catch (e) {
