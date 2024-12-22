@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:spotify_flutter/src/prepare_game/prepare_game_view.dart';
 
 class HomeView extends StatelessWidget {
   static const routeName = '/home';
@@ -16,38 +17,40 @@ class HomeView extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             // Title Text
-            const Text(
+            Text(
               'GrooveCheck',
               style: TextStyle(
                 fontSize: 36,
                 fontWeight: FontWeight.bold,
-                color: Colors.purple,
+                color: Theme.of(context).primaryColor,
               ),
             ),
             const SizedBox(height: 10), // Spacer between title and icon
             // Note Icon
-            const Icon(
+            Icon(
               Icons.music_note,
               size: 48,
-              color: Colors.purple,
+              color: Theme.of(context).primaryColor,
             ),
             const SizedBox(height: 40), // Spacer between icon and buttons
             // Start Game Button
             ElevatedButton(
               onPressed: () {
-                Navigator.of(context).pushNamed('/startGame');
+                Navigator.of(context).pushNamed(PrepareGameView.routeName);
               },
               style: ElevatedButton.styleFrom(
                 padding:
                     const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
-                backgroundColor: Colors.purple,
+                backgroundColor: Theme.of(context).primaryColor,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
               ),
-              child: const Text(
+              child: Text(
                 'Start Game',
-                style: TextStyle(fontSize: 18, color: Colors.white),
+                style: TextStyle(
+                    fontSize: 18,
+                    color: Theme.of(context).colorScheme.onPrimary),
               ),
             ),
             const SizedBox(height: 20), // Spacer
@@ -59,14 +62,16 @@ class HomeView extends StatelessWidget {
               style: ElevatedButton.styleFrom(
                 padding:
                     const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
-                backgroundColor: Colors.purple,
+                backgroundColor: Theme.of(context).primaryColor,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
               ),
-              child: const Text(
+              child: Text(
                 'Join Game',
-                style: TextStyle(fontSize: 18, color: Colors.white),
+                style: TextStyle(
+                    fontSize: 18,
+                    color: Theme.of(context).colorScheme.onPrimary),
               ),
             ),
           ],

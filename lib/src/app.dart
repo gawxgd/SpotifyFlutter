@@ -6,7 +6,9 @@ import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:spotify_flutter/src/authorization/authorization_controller.dart';
 import 'package:spotify_flutter/src/authorization/authorization_view.dart';
+import 'package:spotify_flutter/src/game_lobby/game_lobby_view.dart';
 import 'package:spotify_flutter/src/home/home_view.dart';
+import 'package:spotify_flutter/src/prepare_game/prepare_game_view.dart';
 import 'package:spotify_flutter/src/profile/profile_view.dart';
 import 'package:spotify_flutter/src/stats/stats_view.dart';
 
@@ -134,10 +136,19 @@ class _MyAppState extends State<MyApp> {
           onGenerateTitle: (BuildContext context) =>
               AppLocalizations.of(context)!.appTitle,
           theme: ThemeData(
-            colorScheme: ColorScheme.fromSeed(seedColor: Colors.purple),
+            primaryColor: Colors.purple,
+            colorScheme: ColorScheme.fromSeed(
+              seedColor: Colors.purple,
+              primary: Colors.purple,
+            ),
             useMaterial3: true,
           ),
-          darkTheme: ThemeData.dark(),
+          darkTheme: ThemeData.dark().copyWith(
+            primaryColor: Colors.purple,
+            colorScheme: const ColorScheme.dark(
+              primary: Colors.purple,
+            ),
+          ),
           themeMode: widget.settingsController.themeMode,
           onGenerateRoute: (RouteSettings routeSettings) {
             return MaterialPageRoute<void>(
@@ -177,6 +188,18 @@ class _MyAppState extends State<MyApp> {
                     return _buildScaffold(
                       HomeView.name,
                       const HomeView(),
+                      context,
+                    );
+                  case PrepareGameView.routeName:
+                    return _buildScaffold(
+                      PrepareGameView.name,
+                      PrepareGameView(),
+                      context,
+                    );
+                  case GameLobbyView.routeName:
+                    return _buildScaffold(
+                      GameLobbyView.name,
+                      GameLobbyView(),
                       context,
                     );
                   default:

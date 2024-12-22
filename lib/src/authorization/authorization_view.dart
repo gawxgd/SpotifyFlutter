@@ -34,10 +34,9 @@ class AuthorizationView extends StatelessWidget {
               const SizedBox(height: 20),
 
               // Title
-              Text(
+              const Text(
                 'Login with Spotify',
                 style: TextStyle(
-                  color: Theme.of(context).colorScheme.secondary,
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
                 ),
@@ -46,10 +45,9 @@ class AuthorizationView extends StatelessWidget {
               const SizedBox(height: 20),
 
               // Description
-              Text(
+              const Text(
                 'We want to know what you listen to so we can personalize your experience.',
                 style: TextStyle(
-                  color: Theme.of(context).colorScheme.secondary,
                   fontSize: 16,
                 ),
                 textAlign: TextAlign.center,
@@ -59,7 +57,7 @@ class AuthorizationView extends StatelessWidget {
               // Login Button
               ElevatedButton(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Theme.of(context).colorScheme.primary,
+                  backgroundColor: Theme.of(context).primaryColor,
                   foregroundColor: Theme.of(context).colorScheme.onPrimary,
                   padding:
                       const EdgeInsets.symmetric(vertical: 16, horizontal: 40),

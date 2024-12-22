@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:spotify/spotify.dart';
+import 'package:spotify_flutter/src/components/artist_component.dart';
+import 'package:spotify_flutter/src/components/song_component.dart';
 import 'package:spotify_flutter/src/stats/stats_controller.dart';
 
 class StatsView extends StatefulWidget {
@@ -63,13 +66,10 @@ class StatsViewState extends State<StatsView> {
                     const Text('No songs available.')
                   else
                     ...topSongs.map((song) {
-                      return ListTile(
-                        leading: song['image'] != ''
-                            ? Image.network(song['image']!,
-                                width: 50, height: 50)
-                            : null,
-                        title: Text(song['title'] ?? 'No title'),
-                        subtitle: Text(song['author'] ?? 'Unknown artist'),
+                      return SongComponent(
+                        songImageUrl: song['image'] ?? ' ',
+                        songName: song['title'] ?? 'No title',
+                        songAuthor: song['author'] ?? 'Unknown artist',
                       );
                     }),
 
@@ -84,12 +84,9 @@ class StatsViewState extends State<StatsView> {
                     const Text('No artists available.')
                   else
                     ...topArtists.map((artist) {
-                      return ListTile(
-                        leading: artist['image'] != ''
-                            ? Image.network(artist['image']!,
-                                width: 50, height: 50)
-                            : null,
-                        title: Text(artist['title'] ?? 'Unknown artist'),
+                      return ArtistComponent(
+                        artistImageUrl: artist['image'] ?? '',
+                        artistName: artist['title'] ?? 'Unknown artist',
                       );
                     }),
                 ],

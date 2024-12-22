@@ -131,11 +131,13 @@ class _ProfileViewState extends State<ProfileView> {
                       const SizedBox(height: 30),
                       // Button to Open Spotify Profile
                       ElevatedButton.icon(
-                        icon: const Icon(Icons.open_in_new),
+                        icon: Icon(Icons.open_in_new,
+                            color: Theme.of(context).colorScheme.onPrimary),
                         label: const Text('Open Spotify Profile'),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Theme.of(context).primaryColor,
-                          foregroundColor: Colors.white,
+                          foregroundColor:
+                              Theme.of(context).colorScheme.onPrimary,
                           padding: const EdgeInsets.symmetric(
                               horizontal: 24, vertical: 12),
                           shape: RoundedRectangleBorder(
@@ -147,11 +149,13 @@ class _ProfileViewState extends State<ProfileView> {
                       const SizedBox(height: 20),
                       // Logout Button
                       ElevatedButton.icon(
-                        icon: const Icon(Icons.bar_chart),
+                        icon: Icon(Icons.bar_chart,
+                            color: Theme.of(context).colorScheme.onPrimary),
                         label: const Text('View your stats'),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Theme.of(context).primaryColor,
-                          foregroundColor: Colors.white,
+                          foregroundColor:
+                              Theme.of(context).colorScheme.onPrimary,
                           padding: const EdgeInsets.symmetric(
                               horizontal: 24, vertical: 12),
                           shape: RoundedRectangleBorder(
@@ -164,11 +168,13 @@ class _ProfileViewState extends State<ProfileView> {
                       const SizedBox(height: 20),
                       // Logout Button
                       ElevatedButton.icon(
-                        icon: const Icon(Icons.logout),
+                        icon: Icon(Icons.logout,
+                            color: Theme.of(context).colorScheme.onPrimary),
                         label: const Text('Logout'),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.red,
-                          foregroundColor: Colors.white,
+                          backgroundColor: Theme.of(context).colorScheme.error,
+                          foregroundColor:
+                              Theme.of(context).colorScheme.onError,
                           padding: const EdgeInsets.symmetric(
                               horizontal: 24, vertical: 12),
                           shape: RoundedRectangleBorder(
