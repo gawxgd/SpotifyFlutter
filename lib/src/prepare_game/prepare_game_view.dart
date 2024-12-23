@@ -7,7 +7,7 @@ class PrepareGameView extends StatelessWidget {
   static const routeName = '/prepareGame';
   static const name = 'Prepare Game';
 
-  PrepareGameView({super.key});
+  const PrepareGameView({super.key});
 
   @override
   Widget build(BuildContext context) {

@@ -8,6 +8,7 @@ import 'package:spotify_flutter/src/authorization/authorization_controller.dart'
 import 'package:spotify_flutter/src/authorization/authorization_view.dart';
 import 'package:spotify_flutter/src/game_lobby/game_lobby_view.dart';
 import 'package:spotify_flutter/src/home/home_view.dart';
+import 'package:spotify_flutter/src/join_game/join_game_view.dart';
 import 'package:spotify_flutter/src/prepare_game/prepare_game_view.dart';
 import 'package:spotify_flutter/src/profile/profile_view.dart';
 import 'package:spotify_flutter/src/stats/stats_view.dart';
@@ -57,7 +58,21 @@ class _MyAppState extends State<MyApp> {
   }
 
   void openAppLink(Uri uri) {
-    _navigatorKey.currentState?.pushNamed(uri.fragment);
+    //   if (uri.pathSegments.contains('join') &&
+    //       uri.queryParameters['gameId'] != null) {
+    //     final gameId = uri.queryParameters['gameId']!;
+    //     debugPrint('Navigating to join game view with Game ID: $gameId');
+    //     _navigatorKey.currentState?.pushNamed(
+    //       GameLobbyView.routeName,
+    //       arguments: gameId, // change to join game
+    //     );
+    //   } else {
+    //     debugPrint('Unhandled deep link: $uri');
+    //   }
+    // }
+    if (uri.pathSegments.contains('joingame')) {
+      _navigatorKey.currentState?.pushNamed(JoinGameView.routeName);
+    }
   }
 
   void _onAuthorizationSuccess() {
@@ -193,13 +208,19 @@ class _MyAppState extends State<MyApp> {
                   case PrepareGameView.routeName:
                     return _buildScaffold(
                       PrepareGameView.name,
-                      PrepareGameView(),
+                      const PrepareGameView(),
                       context,
                     );
                   case GameLobbyView.routeName:
                     return _buildScaffold(
                       GameLobbyView.name,
                       GameLobbyView(),
+                      context,
+                    );
+                  case JoinGameView.routeName:
+                    return _buildScaffold(
+                      JoinGameView.name,
+                      const JoinGameView(),
                       context,
                     );
                   default:

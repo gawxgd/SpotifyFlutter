@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:spotify/spotify.dart';
 
 class GameLobbyViewModel extends ChangeNotifier {
-  String _deepLink = 'https://game.example.com/join?room=12345'; // Example link
+  final String _deepLink = 'https://groovecheck-6bbf7.web.app/joingame';
   String get deepLink => _deepLink;
 
   final List<User> _players = [];
