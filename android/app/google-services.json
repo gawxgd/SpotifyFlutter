@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "269271335801",
+    "project_id": "groovecheck-6bbf7",
+    "storage_bucket": "groovecheck-6bbf7.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:269271335801:android:08c948dfd801a5699725a8",
+        "android_client_info": {
+          "package_name": "com.example.spotify_flutter"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDyQ1ijG7CGPdEq5Nrhc01rGcN-JIOKD7o"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
