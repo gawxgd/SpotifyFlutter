@@ -9,19 +9,19 @@ class JoinGameView extends StatefulWidget {
   const JoinGameView({super.key});
 
   @override
-  _JoinGameViewState createState() => _JoinGameViewState();
+  JoinGameViewState createState() => JoinGameViewState();
 }
 
-class _JoinGameViewState extends State<JoinGameView> {
+class JoinGameViewState extends State<JoinGameView> {
   late final JoinGameController _controller;
   bool _isConnected = false;
   bool _isHostStarted = false;
+  final TextEditingController _roomIdController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
 
-    // Initialize the controller with the model and callback functions
     final model = JoinGameModel();
     _controller = JoinGameController(
       model: model,
@@ -36,10 +36,17 @@ class _JoinGameViewState extends State<JoinGameView> {
         });
       },
     );
+  }
 
-    // Connect to the game and wait for the host to start
-    _controller.connectToGame();
-    _controller.waitForHostToStart();
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    final routeArguments = ModalRoute.of(context)?.settings.arguments;
+    if (routeArguments is String) {
+      _roomIdController.text = routeArguments;
+      // _controller.waitForHostToStart();
+    }
   }
 
   @override
@@ -56,8 +63,7 @@ class _JoinGameViewState extends State<JoinGameView> {
                   ),
                   ElevatedButton(
                     onPressed: () {
-                      // Navigate to the game view
-                      Navigator.pushNamed(context, '/game');
+                      //Navigator.pushNamed(context, '/game');
                     },
                     child: const Text('Start Playing'),
                   ),
@@ -66,12 +72,37 @@ class _JoinGameViewState extends State<JoinGameView> {
             : Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text(
-                    _isConnected
-                        ? 'Waiting for the host to start...'
-                        : 'Connecting to the game...',
-                    style: const TextStyle(fontSize: 20),
-                  ),
+                  if (!_isConnected)
+                    Column(
+                      children: [
+                        const Text(
+                          'Enter Room ID:',
+                          style: TextStyle(fontSize: 16),
+                        ),
+                        TextField(
+                          controller: _roomIdController,
+                          decoration: const InputDecoration(
+                            hintText: 'Room ID',
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+                        ElevatedButton(
+                          onPressed: () {
+                            final roomId = _roomIdController.text;
+                            if (roomId.isNotEmpty) {
+                              _controller.connectToGame(roomId);
+                              _controller.waitForHostToStart();
+                            }
+                          },
+                          child: const Text('Join Game'),
+                        ),
+                      ],
+                    ),
+                  if (_isConnected)
+                    const Text(
+                      'Waiting for the host to start...',
+                      style: TextStyle(fontSize: 20),
+                    ),
                   const SizedBox(height: 20),
                   if (!_isConnected) const CircularProgressIndicator(),
                 ],

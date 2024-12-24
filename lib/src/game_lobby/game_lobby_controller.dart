@@ -1,13 +1,39 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:spotify/spotify.dart';
 import 'package:spotify_flutter/src/dependency_injection.dart';
 import 'package:spotify_flutter/src/game_lobby/game_lobby_view_model.dart';
+import 'package:spotify_flutter/src/webRtc/signaling.dart';
 
 class GameLobbyController {
   final GameLobbyViewModel viewModel;
+  final Signaling signaling = Signaling();
 
   GameLobbyController(this.viewModel);
+
+  Future<void> initializeHost() async {
+    String roomId = await signaling.createRoom();
+    viewModel.updateDeepLink(
+        'https://groovecheck-6bbf7.web.app/joingame?roomId=$roomId');
+
+    signaling.onMessageReceived = (message) {
+      if (message['type'] == 'player_joined') {
+        User newUser = message['user'] as User;
+        viewModel.addPlayer(newUser);
+      }
+    };
+  }
+
+  Future<void> sendMessageToPlayers(Map<String, dynamic> message) async {
+    await signaling.sendMessage(message);
+  }
+
+  void dispose() {
+    signaling.peerConnection?.close();
+    signaling.peerConnection = null;
+  }
 
   void copyDeepLink() {
     Clipboard.setData(ClipboardData(text: viewModel.deepLink));

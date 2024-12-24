@@ -1,4 +1,4 @@
-import 'join_game_model.dart';
+import 'package:spotify_flutter/src/join_game/join_game_model.dart';
 
 class JoinGameController {
   final JoinGameModel model;
@@ -11,9 +11,9 @@ class JoinGameController {
     required this.onHostStarted,
   });
 
-  Future<void> connectToGame() async {
+  Future<void> connectToGame(String roomId) async {
     try {
-      await model.connectToWebRTC();
+      await model.connectToRoom(roomId);
       onConnectionChanged(true); // Notify the view about the connection status
     } catch (e) {
       print('Error connecting to the game: $e');

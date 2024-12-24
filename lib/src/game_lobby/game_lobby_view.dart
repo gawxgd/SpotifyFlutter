@@ -16,7 +16,8 @@ class GameLobbyView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    controller.addHostPlayer(); // Simulate player connections
+    controller.initializeHost();
+    controller.addHostPlayer();
 
     return ChangeNotifierProvider(
       create: (_) => viewModel,
@@ -101,7 +102,7 @@ class GameLobbyView extends StatelessWidget {
                           return UserComponent(
                             userName: player.displayName ??
                                 ' ', // player.name is the player's name
-                            userImageUrl: player.images?.first.url ??
+                            userImageUrl: player.images?.firstOrNull?.url ??
                                 ' ', // player.imageUrl is the player's image URL from Spotify
                             onDelete: () => controller.deletePlayer(player),
                           );

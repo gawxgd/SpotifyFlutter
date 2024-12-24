@@ -58,20 +58,17 @@ class _MyAppState extends State<MyApp> {
   }
 
   void openAppLink(Uri uri) {
-    //   if (uri.pathSegments.contains('join') &&
-    //       uri.queryParameters['gameId'] != null) {
-    //     final gameId = uri.queryParameters['gameId']!;
-    //     debugPrint('Navigating to join game view with Game ID: $gameId');
-    //     _navigatorKey.currentState?.pushNamed(
-    //       GameLobbyView.routeName,
-    //       arguments: gameId, // change to join game
-    //     );
-    //   } else {
-    //     debugPrint('Unhandled deep link: $uri');
-    //   }
-    // }
     if (uri.pathSegments.contains('joingame')) {
-      _navigatorKey.currentState?.pushNamed(JoinGameView.routeName);
+      final roomId = uri.queryParameters['roomId'];
+      if (roomId != null) {
+        debugPrint('Navigating to join game view with Room ID: $roomId');
+        _navigatorKey.currentState?.pushNamed(
+          JoinGameView.routeName,
+          arguments: roomId, // Pass the roomId to the JoinGameView
+        );
+      } else {
+        debugPrint('No roomId found in the deep link');
+      }
     }
   }
 
