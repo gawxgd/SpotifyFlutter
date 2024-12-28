@@ -29,6 +29,15 @@ class AuthorizationService {
     await oAuth2Helper.removeAllTokens();
   }
 
+  Future<bool> isAuthorized() async {
+    try {
+      final token = await oAuth2Helper.getTokenFromStorage();
+      return token != null && !token.isExpired();
+    } catch (e) {
+      return false;
+    }
+  }
+
   Future<void> authorizeUser(BuildContext context) async {
     SpotifyOAuth2Client client = SpotifyOAuth2Client(
       customUriScheme: customUriScheme,

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:spotify_flutter/src/game_lobby/game_lobby_controller.dart';
 import 'package:spotify_flutter/src/game_lobby/game_lobby_view.dart';
 import 'package:spotify_flutter/src/prepare_game/prepare_game_view_model.dart';
@@ -16,11 +17,11 @@ class PrepareGameController {
       );
       return;
     }
-
-    Navigator.of(context).popAndPushNamed(GameLobbyView.routeName, arguments: {
-      'rounds': viewModel.rounds,
-      'gameMode': viewModel.gameMode,
-      'password': viewModel.password,
-    });
+    context.pop();
+    context.push(GameLobbyView.routeName); //, pathParameters: {
+    //   'rounds': viewModel.rounds,
+    //   'gameMode': viewModel.gameMode,
+    //   'password': viewModel.password,
+    // });
   }
 }

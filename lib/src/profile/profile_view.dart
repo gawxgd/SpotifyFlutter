@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:spotify/spotify.dart';
 import 'package:spotify_flutter/src/authorization/authorization_view.dart';
 import 'package:spotify_flutter/src/stats/stats_view.dart';
@@ -28,7 +29,7 @@ class _ProfileViewState extends State<ProfileView> {
 
   Future<void> _loadProfile() async {
     try {
-      final profile = await _controller.fetchUserProfile();
+      final profile = await _controller.fetchUserProfile(context);
       setState(() {
         userProfile = profile;
         isLoading = false;
@@ -45,7 +46,9 @@ class _ProfileViewState extends State<ProfileView> {
 
   Future<void> _logout() async {
     await _controller.logout();
-    Navigator.pushReplacementNamed(context, AuthorizationView.routeName);
+    if (mounted) {
+      context.push(AuthorizationView.routeName);
+    }
   }
 
   Future<void> _openSpotifyProfile() async {
@@ -162,8 +165,7 @@ class _ProfileViewState extends State<ProfileView> {
                             borderRadius: BorderRadius.circular(8),
                           ),
                         ),
-                        onPressed: () =>
-                            Navigator.pushNamed(context, StatsView.routeName),
+                        onPressed: () => context.push(StatsView.routeName),
                       ),
                       const SizedBox(height: 20),
                       // Logout Button

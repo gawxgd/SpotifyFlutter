@@ -3,13 +3,8 @@ import 'package:spotify/spotify.dart';
 import 'package:spotify_flutter/src/dependency_injection.dart';
 
 class StatsController {
-  Future<List<Map<String, String>>> fetchTopSongs(BuildContext context) async {
+  Future<List<Map<String, String>>> fetchTopSongs(SpotifyApi spotifyApi) async {
     try {
-      final spotifyApi = getService<SpotifyApi>();
-      if (spotifyApi == null) {
-        throw Exception('Spotify API is not available');
-      }
-
       final tracksPages = spotifyApi.me.topTracks();
       final tracks = await tracksPages.getPage(10);
 
@@ -33,13 +28,8 @@ class StatsController {
   }
 
   Future<List<Map<String, String>>> fetchTopArtists(
-      BuildContext context) async {
+      SpotifyApi spotifyApi) async {
     try {
-      final spotifyApi = getService<SpotifyApi>();
-      if (spotifyApi == null) {
-        throw Exception('Spotify API is not available');
-      }
-
       final artistsPages = spotifyApi.me.topArtists();
       final artists = await artistsPages.getPage(10);
 
@@ -59,5 +49,13 @@ class StatsController {
       debugPrint(e.toString());
       return [];
     }
+  }
+
+  Future<(List<Map<String, String>>, List<Map<String, String>>)>
+      fetchSongsAndArtists(BuildContext context) async {
+    final spotifyApi = await getSpotifyApi(context);
+    final songs = await fetchTopSongs(spotifyApi);
+    final artists = await fetchTopArtists(spotifyApi);
+    return (songs, artists);
   }
 }

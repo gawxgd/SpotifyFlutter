@@ -29,21 +29,18 @@ class StatsViewState extends State<StatsView> {
 
   Future<void> _loadStats() async {
     try {
-      final songs = await _controller.fetchTopSongs(context);
-      final artists = await _controller.fetchTopArtists(context);
-
+      final songsAndArtists = await _controller.fetchSongsAndArtists(context);
       setState(() {
-        topSongs = songs;
-        topArtists = artists;
+        topSongs = songsAndArtists.$1;
+        topArtists = songsAndArtists.$2;
         isLoading = false;
       });
     } catch (e) {
-      setState(() {
-        isLoading = false;
-      });
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to load stats: $e')),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to load stats: $e')),
+        );
+      }
     }
   }
 

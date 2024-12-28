@@ -9,4 +9,8 @@ class AuthorizationController {
   Future<void> startAuthorization(BuildContext context) async {
     await service.authorizeUser(context);
   }
+
+  Future<bool> checkAuthorization() async {
+    return await service.isAuthorized();
+  }
 }

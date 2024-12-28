@@ -5,8 +5,9 @@ import 'join_game_model.dart';
 class JoinGameView extends StatefulWidget {
   static const routeName = '/joingame';
   static const name = 'Join Game';
+  final String? roomId;
 
-  const JoinGameView({super.key});
+  const JoinGameView({super.key, this.roomId});
 
   @override
   JoinGameViewState createState() => JoinGameViewState();
@@ -21,6 +22,9 @@ class JoinGameViewState extends State<JoinGameView> {
   @override
   void initState() {
     super.initState();
+    if (widget.roomId != null) {
+      _roomIdController.text = widget.roomId!;
+    }
 
     final model = JoinGameModel();
     _controller = JoinGameController(
@@ -38,19 +42,16 @@ class JoinGameViewState extends State<JoinGameView> {
     );
   }
 
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-
+  void getRouteArgs() {
     final routeArguments = ModalRoute.of(context)?.settings.arguments;
     if (routeArguments is String) {
       _roomIdController.text = routeArguments;
-      // _controller.waitForHostToStart();
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    getRouteArgs();
     return Scaffold(
       body: Center(
         child: _isHostStarted
@@ -90,8 +91,8 @@ class JoinGameViewState extends State<JoinGameView> {
                           onPressed: () {
                             final roomId = _roomIdController.text;
                             if (roomId.isNotEmpty) {
-                              _controller.connectToGame(roomId);
-                              _controller.waitForHostToStart();
+                              //_controller.connectToGame(roomId);
+                              //_controller.waitForHostToStart();
                             }
                           },
                           child: const Text('Join Game'),

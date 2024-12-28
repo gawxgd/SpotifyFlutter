@@ -1,12 +1,14 @@
+import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import 'package:spotify/spotify.dart';
 import 'package:spotify_flutter/src/authorization/authorization_service.dart';
+import 'package:spotify_flutter/src/authorization/authorization_view.dart';
 
 final getIt = GetIt.instance;
 
 void setupDependencies() {
   setupAuthorizationService();
-  setupSpotifyApi();
+  //setupSpotifyApi();
 }
 
 void setupAuthorizationService() {
@@ -46,4 +48,28 @@ T? getService<T extends Object>() {
     return getIt<T>();
   }
   return null;
+}
+
+Future<SpotifyApi> getSpotifyApi(BuildContext context) async {
+  var spotifyApi = getService<SpotifyApi>();
+
+  if (spotifyApi == null) {
+    final authService = getService<AuthorizationService>();
+    if (authService != null) {
+      await authService.authorizeUser(context);
+
+      spotifyApi = getService<SpotifyApi>();
+      if (spotifyApi != null) {
+        return spotifyApi;
+      }
+
+      if (context.mounted) {
+        //Navigator.pushReplacementNamed(context, AuthorizationView.routeName);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Please log in to continue.')),
+        );
+      }
+    }
+  }
+  return spotifyApi!;
 }
