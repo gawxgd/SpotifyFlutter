@@ -91,7 +91,7 @@ class JoinGameViewState extends State<JoinGameView> {
                           onPressed: () {
                             final roomId = _roomIdController.text;
                             if (roomId.isNotEmpty) {
-                              //_controller.connectToGame(roomId);
+                              _controller.connectToGame(roomId);
                               //_controller.waitForHostToStart();
                             }
                           },

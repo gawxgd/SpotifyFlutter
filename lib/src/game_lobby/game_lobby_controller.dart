@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:spotify/spotify.dart';
 import 'package:spotify_flutter/src/dependency_injection.dart';
 import 'package:spotify_flutter/src/game_lobby/game_lobby_view_model.dart';
@@ -39,11 +40,17 @@ class GameLobbyController {
     Clipboard.setData(ClipboardData(text: viewModel.deepLink));
   }
 
-  void shareDeepLink(BuildContext context) {
-    // Future feature: Integrate with sharing services (e.g., Messenger, WhatsApp)
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Sharing is not implemented yet.')),
-    );
+  Future<void> shareDeepLink(BuildContext context) async {
+    final result =
+        await Share.share('Play GrooveCheck with me ${viewModel.deepLink}');
+
+    if (result.status == ShareResultStatus.success) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Invite sent succesfully.')),
+        );
+      }
+    }
   }
 
   Future<void> addDummyPlayers() async {

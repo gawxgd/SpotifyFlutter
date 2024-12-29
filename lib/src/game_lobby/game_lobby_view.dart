@@ -64,11 +64,7 @@ class GameLobbyView extends StatelessWidget {
                           const SizedBox(height: 16),
 
                           // Share Button
-                          ElevatedButton.icon(
-                            onPressed: () => controller.shareDeepLink(context),
-                            icon: const Icon(Icons.share),
-                            label: const Text('Share Link'),
-                          ),
+                          ShareButton(controller: controller),
                         ],
                       ),
                     ),
@@ -116,6 +112,24 @@ class GameLobbyView extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+class ShareButton extends StatelessWidget {
+  const ShareButton({
+    super.key,
+    required this.controller,
+  });
+
+  final GameLobbyController controller;
+
+  @override
+  Widget build(BuildContext context) {
+    return ElevatedButton.icon(
+      onPressed: () => controller.shareDeepLink(context),
+      icon: const Icon(Icons.share),
+      label: const Text('Share Link'),
     );
   }
 }
