@@ -31,6 +31,11 @@ dependencies:
   cloud_firestore_web: ^4.4.0
   go_router: ^14.6.2
   share_plus: ^10.1.3
+  peerdart: any
+  
+dependency_overrides:
+  flutter_webrtc: ^0.12.5
+  http: ^1.2.2
 
 dev_dependencies:
   flutter_test:

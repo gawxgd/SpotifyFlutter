@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
-import 'package:spotify/spotify.dart';
 
 typedef OnMessageCallback = void Function(Map<String, dynamic> message);
 
@@ -25,23 +24,28 @@ class Signaling {
   String? currentRoomText;
   OnMessageCallback? onMessageReceived;
 
+  /// Create a new WebRTC Room
   Future<String> createRoom() async {
     FirebaseFirestore db = FirebaseFirestore.instance;
     DocumentReference roomRef = db.collection('rooms').doc();
 
-    debugPrint('Create PeerConnection with configuration: $configuration');
+    debugPrint('Creating PeerConnection with configuration: $configuration');
 
     peerConnection = await createPeerConnection(configuration);
     registerPeerConnectionListeners();
 
-    // Create DataChannel
+    // Create Data Channel
     dataChannel =
         await peerConnection!.createDataChannel('data', RTCDataChannelInit());
     setupDataChannel();
 
-    // Collect ICE candidates
+    // Handle ICE Candidates
     var callerCandidatesCollection = roomRef.collection('callerCandidates');
-    peerConnection?.onIceCandidate = (RTCIceCandidate candidate) {
+    peerConnection?.onIceCandidate = (RTCIceCandidate? candidate) {
+      if (candidate == null) {
+        debugPrint('onIceCandidate: complete!');
+        return;
+      }
       debugPrint('Got candidate: ${candidate.toMap()}');
       callerCandidatesCollection.add(candidate.toMap());
     };
@@ -52,16 +56,15 @@ class Signaling {
 
     debugPrint('Created offer: $offer');
 
-    Map<String, dynamic> roomWithOffer = {'offer': offer.toMap()};
-    await roomRef.set(roomWithOffer);
+    await roomRef.set({'offer': offer.toMap()});
 
-    var roomId = roomRef.id;
+    roomId = roomRef.id;
     debugPrint('New room created with SDK offer. Room ID: $roomId');
     currentRoomText = 'Current room is $roomId - You are the caller!';
 
     // Listen for remote session description
     roomRef.snapshots().listen((snapshot) async {
-      debugPrint('Got updated room: ${snapshot.data()}');
+      if (!snapshot.exists) return;
       Map<String, dynamic> data = snapshot.data() as Map<String, dynamic>;
       if (peerConnection?.getRemoteDescription() == null &&
           data['answer'] != null) {
@@ -77,8 +80,7 @@ class Signaling {
     roomRef.collection('calleeCandidates').snapshots().listen((snapshot) {
       for (var change in snapshot.docChanges) {
         if (change.type == DocumentChangeType.added) {
-          Map<String, dynamic> data = change.doc.data() as Map<String, dynamic>;
-          debugPrint('Got new remote ICE candidate: ${jsonEncode(data)}');
+          var data = change.doc.data() as Map<String, dynamic>;
           peerConnection!.addCandidate(
             RTCIceCandidate(
               data['candidate'],
@@ -90,22 +92,30 @@ class Signaling {
       }
     });
 
-    return roomId;
+    return roomId!;
   }
 
+  /// Join an existing WebRTC Room
   Future<void> joinRoom(String roomId) async {
     FirebaseFirestore db = FirebaseFirestore.instance;
     DocumentReference roomRef = db.collection('rooms').doc(roomId);
     var roomSnapshot = await roomRef.get();
 
     if (roomSnapshot.exists) {
-      debugPrint('Create PeerConnection with configuration: $configuration');
+      debugPrint('Joining room with configuration: $configuration');
+
       peerConnection = await createPeerConnection(configuration);
       registerPeerConnectionListeners();
 
-      // Listen for remote ICE candidates
+      // Handle DataChannel
+      peerConnection?.onDataChannel = (RTCDataChannel channel) {
+        dataChannel = channel;
+        setupDataChannel();
+        debugPrint('Data channel established on join.');
+      };
+
       var calleeCandidatesCollection = roomRef.collection('calleeCandidates');
-      peerConnection!.onIceCandidate = (RTCIceCandidate? candidate) {
+      peerConnection?.onIceCandidate = (RTCIceCandidate? candidate) {
         if (candidate == null) {
           debugPrint('onIceCandidate: complete!');
           return;
@@ -114,13 +124,6 @@ class Signaling {
         calleeCandidatesCollection.add(candidate.toMap());
       };
 
-      // Handle DataChannel
-      peerConnection!.onDataChannel = (RTCDataChannel channel) {
-        dataChannel = channel;
-        setupDataChannel();
-      };
-
-      // Set remote offer and create answer
       var data = roomSnapshot.data() as Map<String, dynamic>;
       var offer = data['offer'];
       await peerConnection!.setRemoteDescription(
@@ -130,42 +133,49 @@ class Signaling {
       var answer = await peerConnection!.createAnswer();
       await peerConnection!.setLocalDescription(answer);
 
-      Map<String, dynamic> roomWithAnswer = {
-        'answer': {'type': answer.type, 'sdp': answer.sdp}
-      };
-      await roomRef.update(roomWithAnswer);
+      await roomRef.update({'answer': answer.toMap()});
     }
   }
 
+  /// Setup Data Channel for Messaging
   void setupDataChannel() {
+    if (dataChannel == null) {
+      debugPrint('setupDataChannel: Data channel is null!');
+      return;
+    }
+
+    debugPrint('Setting up data channel listeners.');
+
     dataChannel?.onMessage = (RTCDataChannelMessage message) {
       if (message.isBinary) {
         debugPrint('Received binary message');
       } else {
         final decodedMessage = jsonDecode(message.text);
-        if (decodedMessage['type'] == 'player_joined') {
-          User newUser = User.fromJson(decodedMessage['user']);
-          onMessageReceived?.call({'type': 'player_joined', 'user': newUser});
-        } else {
-          onMessageReceived?.call(decodedMessage);
-        }
+        onMessageReceived?.call(decodedMessage);
+        debugPrint('Received message: ${message.text}');
       }
     };
 
     dataChannel?.onDataChannelState = (RTCDataChannelState state) {
       debugPrint('Data channel state: $state');
+      if (state == RTCDataChannelState.RTCDataChannelOpen) {
+        debugPrint('Data channel is open and ready for communication.');
+      }
     };
   }
 
+  /// Send a Message via Data Channel
   Future<void> sendMessage(Map<String, dynamic> message) async {
-    if (dataChannel != null) {
+    if (dataChannel != null &&
+        dataChannel!.state == RTCDataChannelState.RTCDataChannelOpen) {
       dataChannel!.send(RTCDataChannelMessage(jsonEncode(message)));
       debugPrint('Sent message: $message');
     } else {
-      debugPrint('Data channel is not available');
+      debugPrint('Data channel is not open or available');
     }
   }
 
+  /// Peer Connection Listeners
   void registerPeerConnectionListeners() {
     peerConnection?.onConnectionState = (RTCPeerConnectionState state) {
       debugPrint('Connection state change: $state');
