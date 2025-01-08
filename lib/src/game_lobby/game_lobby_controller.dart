@@ -6,24 +6,28 @@ import 'package:share_plus/share_plus.dart';
 import 'package:spotify/spotify.dart';
 import 'package:spotify_flutter/src/dependency_injection.dart';
 import 'package:spotify_flutter/src/game_lobby/game_lobby_view_model.dart';
+import 'package:spotify_flutter/src/webRtc/hostpeer.dart';
 import 'package:spotify_flutter/src/webRtc/peerdart.dart';
+import 'package:spotify_flutter/src/webRtc/peersignalingbase.dart';
 import 'package:spotify_flutter/src/webRtc/signaling.dart';
 
 class GameLobbyController {
   final GameLobbyViewModel viewModel;
   final Signaling signaling = Signaling();
   final PeerSignaling peerSignaling = PeerSignaling();
+  final HostPeerSignaling hostPeerSignaling = HostPeerSignaling();
   User? hostPlayer;
 
   GameLobbyController(this.viewModel);
 
   Future<void> initializeHost() async {
     // String roomId = await signaling.createRoom();
-    String roomId = await peerSignaling.createRoom();
+    //String roomId = await peerSignaling.createRoom();
+    String roomId = await hostPeerSignaling.createRoom();
     viewModel.updateDeepLink(
         'https://groovecheck-6bbf7.web.app/joingame?roomId=$roomId');
 
-    peerSignaling.onMessageReceived = (message) {
+    hostPeerSignaling.onMessageReceived = (message) {
       debugPrint("goooowno");
       debugPrint(message);
       final decodedMessage = jsonDecode(message);
@@ -37,7 +41,7 @@ class GameLobbyController {
   }
 
   void dispose() {
-    signaling.peerConnection?.close();
+    hostPeerSignaling.close();
     signaling.peerConnection = null;
   }
 

@@ -2,10 +2,12 @@ import 'dart:convert';
 
 import 'package:spotify/spotify.dart';
 import 'package:spotify_flutter/src/dependency_injection.dart';
+import 'package:spotify_flutter/src/webRtc/joinpeer.dart';
 import 'package:spotify_flutter/src/webRtc/peerdart.dart';
 
 class JoinGameModel {
   final PeerSignaling peerSignaling = PeerSignaling();
+  final JoiningPeerSignaling joiningPeerSignaling = JoiningPeerSignaling();
 
   Future<bool> connectToRoom(String roomId) async {
 
@@ -18,7 +20,7 @@ class JoinGameModel {
 
     final spotifyUser = await spotifyApi.me.get();
 
-    await peerSignaling.joinRoom(roomId, onOpen: () {
+    await joiningPeerSignaling.joinRoom(roomId, onOpen: () {
       sendSpotifyUserMessage(spotifyUser.toJson());
     });
       print('Connected to room: $roomId');
@@ -36,7 +38,7 @@ class JoinGameModel {
       'type': 'player_joined',
       'user': spotifyUser,
     };
-    peerSignaling.sendMessage(jsonEncode(spotifyUser));
+    joiningPeerSignaling.sendMessage(jsonEncode(spotifyUser));
     print('Spotify user message sent: $spotifyUser');
   }
 }

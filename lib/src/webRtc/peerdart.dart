@@ -10,7 +10,7 @@ class PeerSignaling {
   late Peer peer;
   String? localPeerId;
   String? remotePeerId;
-  DataConnection? dataConnection;
+  DataConnection? dataConnection; // make a list
   OnMessageCallback? onMessageReceived;
 
   final FirebaseFirestore _db = FirebaseFirestore.instance;
@@ -52,7 +52,7 @@ class PeerSignaling {
     peer.on('connection').listen((conn) {
         debugPrint('Incoming connection from: ${conn.peer}');
       dataConnection = conn;
-
+// make dataConnection a list
     // Set up listeners for the new connection
     _setupDataConnection(onOpen: () {
       debugPrint('Data connection with ${conn.peer} is open');
