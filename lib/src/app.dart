@@ -8,6 +8,7 @@ import 'package:go_router/go_router.dart';
 import 'package:spotify_flutter/src/authorization/authorization_controller.dart';
 import 'package:spotify_flutter/src/authorization/authorization_view.dart';
 import 'package:spotify_flutter/src/dependency_injection.dart';
+import 'package:spotify_flutter/src/game/game_view.dart';
 import 'package:spotify_flutter/src/game_lobby/game_lobby_view.dart';
 import 'package:spotify_flutter/src/game_lobby/game_lobby_view_model.dart';
 import 'package:spotify_flutter/src/home/home_view.dart';
@@ -108,6 +109,11 @@ class _MyAppState extends State<MyApp> {
             return JoinGameView(roomId: roomId);
           },
         ),
+        GoRoute(
+            path: GameView.routeName,
+            builder: (context, state) {
+              return const GameView();
+            }),
       ],
       redirect: (context, state) async {
         final isAuthenticated =

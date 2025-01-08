@@ -32,16 +32,22 @@ class UserComponent extends StatelessWidget {
           backgroundImage: NetworkImage(userImageUrl),
           backgroundColor: Colors.grey[200],
         ),
-        title: canDelete ? Text(
-          "host: $userName",
-          style: const TextStyle(fontWeight: FontWeight.bold),
-        ) : Text(
-          userName,
-          style: const TextStyle(fontWeight: FontWeight.bold),),
-        trailing: canDelete ? null : IconButton(
-          icon: Icon(Icons.delete, color: Theme.of(context).colorScheme.error),
-          onPressed: onDelete,
-        ),
+        title: canDelete
+            ? Text(
+                "host: $userName",
+                style: const TextStyle(fontWeight: FontWeight.bold),
+              )
+            : Text(
+                userName,
+                style: const TextStyle(fontWeight: FontWeight.bold),
+              ),
+        trailing: canDelete
+            ? null
+            : IconButton(
+                icon: Icon(Icons.delete,
+                    color: Theme.of(context).colorScheme.error),
+                onPressed: onDelete,
+              ),
       ),
     );
   }

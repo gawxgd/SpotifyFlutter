@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:spotify_flutter/src/game/game_view.dart';
 import 'package:spotify_flutter/src/join_game/join_game_view.dart';
 import 'package:spotify_flutter/src/prepare_game/prepare_game_view.dart';
 
@@ -38,7 +39,7 @@ class HomeView extends StatelessWidget {
             // Start Game Button
             ElevatedButton(
               onPressed: () {
-                context.push(PrepareGameView.routeName);
+                context.push(GameView.routeName);
               },
               style: ElevatedButton.styleFrom(
                 padding:
