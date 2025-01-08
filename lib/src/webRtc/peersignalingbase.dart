@@ -2,7 +2,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:peerdart/peerdart.dart';
 
-typedef OnMessageCallback = void Function(String message);
+typedef OnMessageCallback = void Function(
+    String message, DataConnection connection);
 
 abstract class PeerSignalingBase {
   late Peer peer;
@@ -35,7 +36,7 @@ abstract class PeerSignalingBase {
   void setupDataConnection(DataConnection connection,
       {required VoidCallback onOpen}) {
     connection.on('data').listen((data) {
-      onMessageReceived?.call(data.toString());
+      onMessageReceived?.call(data.toString(), connection);
       debugPrint('Received message: $data');
     });
 

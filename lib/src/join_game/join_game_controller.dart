@@ -30,7 +30,7 @@ class JoinGameController {
     });
     debugPrint('Connected to room: $roomId');
     joiningPeerSignaling.onMessageReceived =
-        (message) => onMessageReceivedEventHandler(message);
+        (message, _) => onMessageReceivedEventHandler(message);
     return true;
   }
 

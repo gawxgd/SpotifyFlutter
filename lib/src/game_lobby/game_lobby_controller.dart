@@ -27,12 +27,13 @@ class GameLobbyController {
     viewModel.updateDeepLink(
         'https://groovecheck-6bbf7.web.app/joingame?roomId=$roomId');
 
-    hostPeerSignaling.onMessageReceived = (message) {
+    hostPeerSignaling.onMessageReceived = (message, connection) {
       debugPrint("goooowno");
       debugPrint(message);
       final decodedMessage = jsonDecode(message);
       final user = User.fromJson(decodedMessage);
       viewModel.addPlayer(user);
+      hostPeerSignaling.addUserToDataConnectionMapping(user, connection);
     };
   }
 
@@ -83,5 +84,13 @@ class GameLobbyController {
     if (player.id != null) {
       viewModel.removePlayerById(player.id!);
     } // Remove the player from the list
+    if (hostPeerSignaling.userToDataConnectionMap.containsKey(player.id)) {
+      var userWithConnection =
+          hostPeerSignaling.userToDataConnectionMap[player.id];
+      var connection = userWithConnection?.$2;
+      if (connection != null) {
+        hostPeerSignaling.closeConnectionWithPeer(connection, player);
+      }
+    }
   }
 }
