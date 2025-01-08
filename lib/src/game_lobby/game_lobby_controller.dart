@@ -36,6 +36,10 @@ class GameLobbyController {
     };
   }
 
+  Future<bool> startGameAsync() async {
+    return await hostPeerSignaling.sendMessageAsync("start");
+  }
+
   Future<void> sendMessageToPlayers(Map<String, dynamic> message) async {
     await signaling.sendMessage(message);
   }
@@ -71,8 +75,7 @@ class GameLobbyController {
     }
   }
 
-  bool isHostPlayer(User player)
-  {
+  bool isHostPlayer(User player) {
     return player.id == hostPlayer?.id;
   }
 

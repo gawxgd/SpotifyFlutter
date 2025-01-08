@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'join_game_controller.dart';
-import 'join_game_model.dart';
 
 class JoinGameView extends StatefulWidget {
   static const routeName = '/joingame';
@@ -26,9 +25,7 @@ class JoinGameViewState extends State<JoinGameView> {
       _roomIdController.text = widget.roomId!;
     }
 
-    final model = JoinGameModel();
     _controller = JoinGameController(
-      model: model,
       onConnectionChanged: (isConnected) {
         setState(() {
           _isConnected = isConnected;

@@ -16,7 +16,7 @@ class GameLobbyView extends StatelessWidget {
 
   GameLobbyView({super.key});
 
-   Future<bool?> _showBackDialog(BuildContext context) {
+  Future<bool?> _showBackDialog(BuildContext context) {
     return showDialog<bool>(
       context: context,
       builder: (BuildContext context) {
@@ -24,7 +24,6 @@ class GameLobbyView extends StatelessWidget {
       },
     );
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -35,15 +34,15 @@ class GameLobbyView extends StatelessWidget {
       create: (_) => viewModel,
       child: PopScope(
         canPop: false,
-        onPopInvokedWithResult: (bool didPop,Object? result) async {
-          if(didPop){
+        onPopInvokedWithResult: (bool didPop, Object? result) async {
+          if (didPop) {
             return;
           }
           final bool shouldPop = await _showBackDialog(context) ?? false;
-                if (context.mounted && shouldPop) {
-                  controller.dispose();
-                  context.pop();
-                }
+          if (context.mounted && shouldPop) {
+            controller.dispose();
+            context.pop();
+          }
         },
         child: Scaffold(
           body: Padding(
@@ -57,13 +56,13 @@ class GameLobbyView extends StatelessWidget {
                       // Deep Link Display
                       Container(
                         decoration: BoxDecoration(
-                            border:
-                                Border.all(color: Theme.of(context).primaryColor),
+                            border: Border.all(
+                                color: Theme.of(context).primaryColor),
                             borderRadius: BorderRadius.circular(16)),
                         child: Column(
                           children: [
                             const SizedBox(height: 16),
-        
+
                             const Text(
                               'Invite Link:',
                               style: TextStyle(fontSize: 16),
@@ -86,14 +85,14 @@ class GameLobbyView extends StatelessWidget {
                               ],
                             ),
                             const SizedBox(height: 16),
-        
+
                             // Share Button
                             ShareButton(controller: controller),
                           ],
                         ),
                       ),
                       const SizedBox(height: 32),
-        
+
                       // QR Code
                       Center(
                         child: QrImageView(
@@ -103,9 +102,34 @@ class GameLobbyView extends StatelessWidget {
                           backgroundColor: Colors.white,
                         ),
                       ),
+                      const SizedBox(height: 8),
+                      ElevatedButton(
+                        onPressed: () async {
+                          final gameState = await controller.startGameAsync();
+                          if (gameState == false) {
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                      content: Text('game failed to start')));
+                            }
+                          }
+                        },
+                        style: ElevatedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 30, vertical: 15),
+                          backgroundColor: Theme.of(context).primaryColor,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        child: Text(
+                          'Start Game',
+                          style: TextStyle(
+                              fontSize: 18,
+                              color: Theme.of(context).colorScheme.onPrimary),
+                        ),
+                      ),
                       const SizedBox(height: 32),
-        
-                      // Player List
                       const Text(
                         'Connected Players:',
                         style: TextStyle(fontSize: 16),
@@ -120,10 +144,9 @@ class GameLobbyView extends StatelessWidget {
                           itemBuilder: (context, index) {
                             var player = model.players[index];
                             return UserComponent(
-                              userName: player.displayName ??
-                                  ' ', 
-                              userImageUrl: player.images?.firstOrNull?.url ??
-                                  ' ', 
+                              userName: player.displayName ?? ' ',
+                              userImageUrl:
+                                  player.images?.firstOrNull?.url ?? ' ',
                               onDelete: () => controller.deletePlayer(player),
                               canDelete: controller.isHostPlayer(player),
                             );

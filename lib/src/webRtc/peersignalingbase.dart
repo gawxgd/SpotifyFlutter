@@ -32,7 +32,8 @@ abstract class PeerSignalingBase {
   }
 
   /// Set up a data connection
-  void setupDataConnection(DataConnection connection, {required VoidCallback onOpen}) {
+  void setupDataConnection(DataConnection connection,
+      {required VoidCallback onOpen}) {
     connection.on('data').listen((data) {
       onMessageReceived?.call(data.toString());
       debugPrint('Received message: $data');
@@ -63,6 +64,23 @@ abstract class PeerSignalingBase {
         debugPrint('Connection to ${connection.peer} is not open.');
       }
     }
+  }
+
+  Future<bool> sendMessageAsync(String message) async {
+    // false when one message has failed
+    if (dataConnections.isEmpty) {
+      return false;
+    }
+    for (var connection in dataConnections) {
+      if (connection.open) {
+        await connection.send(message);
+        debugPrint('Sent message to ${connection.peer}: $message');
+      } else {
+        debugPrint('Connection to ${connection.peer} is not open.');
+        return false;
+      }
+    }
+    return true;
   }
 
   /// Close all connections and the peer
