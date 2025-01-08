@@ -28,16 +28,6 @@ class PeerSignaling {
       peerOpenCompleter.complete(); // Complete the future when peer is open
     });
 
-    peer.on('connection').listen((event) {
-      if (event is DataConnection) {
-        dataConnection = event;
-        _setupDataConnection();
-        debugPrint('Incoming connection established');
-      } else {
-        debugPrint('Received unexpected event on connection: $event');
-      }
-    });
-
     peer.on('error').listen((error) {
       debugPrint('Peer error: $error');
     });
@@ -59,11 +49,21 @@ class PeerSignaling {
     });
 
     debugPrint('Room created with Peer ID: $localPeerId');
+    peer.on('connection').listen((conn) {
+        debugPrint('Incoming connection from: ${conn.peer}');
+      dataConnection = conn;
+
+    // Set up listeners for the new connection
+    _setupDataConnection(onOpen: () {
+      debugPrint('Data connection with ${conn.peer} is open');
+    });
+    });
+
     return roomRef.id;
   }
 
   /// Join a room using room ID
-  Future<void> joinRoom(String roomId) async {
+  Future<void> joinRoom(String roomId,{required VoidCallback onOpen}) async {
     await initializePeer(); // Ensure peer is initialized and opened
 
     DocumentSnapshot snapshot = await _db.collection('rooms').doc(roomId).get();
@@ -79,7 +79,7 @@ class PeerSignaling {
     debugPrint('Connecting to remote peer: $remotePeerId');
 
     dataConnection = peer.connect(remotePeerId!);
-    _setupDataConnection();
+    _setupDataConnection(onOpen: onOpen);
   }
 
   /// Send a message through the DataChannel
@@ -93,7 +93,7 @@ class PeerSignaling {
   }
 
   /// Handle incoming messages and connection state
-  void _setupDataConnection() {
+  void _setupDataConnection({required VoidCallback onOpen}) {
     dataConnection?.on('data').listen((data) {
       if (onMessageReceived != null) {
         onMessageReceived!(data.toString());
@@ -103,6 +103,7 @@ class PeerSignaling {
 
     dataConnection?.on('open').listen((_) {
       debugPrint('Data connection is open');
+      onOpen();
     });
 
     dataConnection?.on('close').listen((_) {

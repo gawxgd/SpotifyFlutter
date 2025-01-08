@@ -97,10 +97,11 @@ class GameLobbyView extends StatelessWidget {
                           var player = model.players[index];
                           return UserComponent(
                             userName: player.displayName ??
-                                ' ', // player.name is the player's name
+                                ' ', 
                             userImageUrl: player.images?.firstOrNull?.url ??
-                                ' ', // player.imageUrl is the player's image URL from Spotify
+                                ' ', 
                             onDelete: () => controller.deletePlayer(player),
+                            canDelete: controller.isHostPlayer(player),
                           );
                         },
                       ),

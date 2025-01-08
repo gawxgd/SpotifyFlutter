@@ -13,6 +13,7 @@ class GameLobbyController {
   final GameLobbyViewModel viewModel;
   final Signaling signaling = Signaling();
   final PeerSignaling peerSignaling = PeerSignaling();
+  User? hostPlayer;
 
   GameLobbyController(this.viewModel);
 
@@ -22,14 +23,12 @@ class GameLobbyController {
     viewModel.updateDeepLink(
         'https://groovecheck-6bbf7.web.app/joingame?roomId=$roomId');
 
-    // signaling.onMessageReceived = (message) {
-    //   if (message['type'] == 'player_joined') {
-    //     User newUser = message['user'] as User;
-    //     viewModel.addPlayer(newUser);
-    //   }
-    //};
     peerSignaling.onMessageReceived = (message) {
       debugPrint("goooowno");
+      debugPrint(message);
+      final decodedMessage = jsonDecode(message);
+      final user = User.fromJson(decodedMessage);
+      viewModel.addPlayer(user);
     };
   }
 
@@ -59,19 +58,18 @@ class GameLobbyController {
     }
   }
 
-  Future<void> addDummyPlayers() async {
-    // // Simulating player connections
-    // await Future.delayed(const Duration(seconds: 1));
-    // viewModel.addPlayer('Player1');
-    // await Future.delayed(const Duration(seconds: 1));
-    // viewModel.addPlayer('Player2');
-  }
   Future<void> addHostPlayer() async {
     final spotifyApi = getService<SpotifyApi>();
     if (spotifyApi != null) {
       final hostPlayer = await spotifyApi.me.get();
       viewModel.addPlayer(hostPlayer);
+      this.hostPlayer = hostPlayer;
     }
+  }
+
+  bool isHostPlayer(User player)
+  {
+    return player.id == hostPlayer?.id;
   }
 
   void deletePlayer(User player) {
