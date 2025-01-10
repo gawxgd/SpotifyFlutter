@@ -2,10 +2,12 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:peerdart/peerdart.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:spotify/spotify.dart';
 import 'package:spotify_flutter/src/dependency_injection.dart';
 import 'package:spotify_flutter/src/game_lobby/game_lobby_view_model.dart';
+import 'package:spotify_flutter/src/webRtc/communication_protocol.dart';
 import 'package:spotify_flutter/src/webRtc/hostpeer.dart';
 import 'package:spotify_flutter/src/webRtc/peerdart.dart';
 import 'package:spotify_flutter/src/webRtc/peersignalingbase.dart';
@@ -28,17 +30,26 @@ class GameLobbyController {
         'https://groovecheck-6bbf7.web.app/joingame?roomId=$roomId');
 
     hostPeerSignaling.onMessageReceived = (message, connection) {
-      debugPrint("goooowno");
-      debugPrint(message);
-      final decodedMessage = jsonDecode(message);
-      final user = User.fromJson(decodedMessage);
-      viewModel.addPlayer(user);
-      hostPeerSignaling.addUserToDataConnectionMapping(user, connection);
+      onMessageReceivedEventHandler(message, connection);
     };
   }
 
+  void onMessageReceivedEventHandler(message, DataConnection connection) {
+    debugPrint('message recived $message');
+    CommunicationProtocol.onMessageReceivedHost(
+        message, connection, onNewPlayerConnected);
+  }
+
+  void onNewPlayerConnected(User user, DataConnection connection) {
+    viewModel.addPlayer(user);
+    hostPeerSignaling.addUserToDataConnectionMapping(user, connection);
+  }
+
   Future<bool> startGameAsync() async {
-    return await hostPeerSignaling.sendMessageAsync("start");
+    final message = {
+      CommunicationProtocol.typeField: CommunicationProtocol.startGameMessage,
+    };
+    return await hostPeerSignaling.sendMessageAsync(jsonEncode(message));
   }
 
   Future<void> sendMessageToPlayers(Map<String, dynamic> message) async {

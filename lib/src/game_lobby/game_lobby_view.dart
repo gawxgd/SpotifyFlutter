@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:qr_flutter/qr_flutter.dart';
-import 'package:spotify_flutter/src/components/leaving_confirmation_dialog.dart';
+import 'package:spotify_flutter/src/components/leaving_confirmation/leaving_confirmation_dialog.dart';
+import 'package:spotify_flutter/src/components/leaving_confirmation/leaving_confirmation_popscope.dart';
 import 'package:spotify_flutter/src/components/user_component.dart';
 import 'game_lobby_controller.dart';
 import 'game_lobby_view_model.dart';
@@ -32,18 +33,8 @@ class GameLobbyView extends StatelessWidget {
 
     return ChangeNotifierProvider(
       create: (_) => viewModel,
-      child: PopScope(
-        canPop: false,
-        onPopInvokedWithResult: (bool didPop, Object? result) async {
-          if (didPop) {
-            return;
-          }
-          final bool shouldPop = await _showBackDialog(context) ?? false;
-          if (context.mounted && shouldPop) {
-            controller.dispose();
-            context.pop();
-          }
-        },
+      child: LeavingConfirmationPopscope(
+        onDispose: () => controller.dispose,
         child: Scaffold(
           body: Padding(
             padding: const EdgeInsets.all(16.0),

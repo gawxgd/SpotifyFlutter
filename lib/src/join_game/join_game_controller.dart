@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:spotify/spotify.dart';
 import 'package:spotify_flutter/src/dependency_injection.dart';
+import 'package:spotify_flutter/src/webRtc/communication_protocol.dart';
 import 'package:spotify_flutter/src/webRtc/joinpeer.dart';
 
 class JoinGameController {
@@ -36,20 +37,18 @@ class JoinGameController {
 
   Future<void> sendSpotifyUserMessage(Map<String, dynamic> spotifyUser) async {
     final message = {
-      'type': 'player_joined',
-      'user': spotifyUser,
+      CommunicationProtocol.typeField:
+          CommunicationProtocol.newPlayerConnectedMessage,
+      CommunicationProtocol.userField: spotifyUser,
     };
-    joiningPeerSignaling.sendMessage(jsonEncode(spotifyUser));
+    joiningPeerSignaling.sendMessage(jsonEncode(message));
     debugPrint('Spotify user message sent: $spotifyUser');
   }
 
   void onMessageReceivedEventHandler(message) {
     debugPrint('message recived $message');
-    switch (message) {
-      case 'start':
-        debugPrint('the host has started the game');
-        onHostStarted(true);
-    }
+    CommunicationProtocol.onMessageReceivedPlayer(
+        message, () => onHostStarted(true));
   }
 
   Future<void> connectToGame(String roomId) async {
