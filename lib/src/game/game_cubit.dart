@@ -21,6 +21,9 @@ class GameCubit extends Cubit<GameState> {
   final HostPeerSignaling hostPeerSignaling = getIt.get<HostPeerSignaling>();
 
   GameCubit() : super(GameState([], snackbarMessage: null)) {
+    if (getIt.isRegistered<GameCubit>()) {
+      getIt.unregister<GameCubit>();
+    }
     getIt.registerLazySingleton<GameCubit>(() => this);
   }
 
@@ -52,7 +55,6 @@ class GameCubit extends Cubit<GameState> {
     if (me.id != null) {
       final tracks = spotifyApi.me.topTracks();
       final songs = await tracks.getPage(10);
-      debugPrint(songs.items?.first.name ?? "gowno");
       if (songs.items != null && songs.items!.isNotEmpty) {
         updatedUserIdToSongs[me.id!] = songs.items!.take(10).toList();
         debugPrint("added myself");
