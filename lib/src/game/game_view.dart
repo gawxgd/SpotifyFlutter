@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:spotify_flutter/src/components/leaving_confirmation/leaving_confirmation_popscope.dart';
 import 'package:spotify_flutter/src/components/song_component.dart';
 import 'package:spotify_flutter/src/components/square_user_component.dart';
-import 'game_cubit.dart';
+import 'package:spotify_flutter/src/game/game_cubit.dart';
 
 class GameView extends StatelessWidget {
   static const routeName = '/game';
@@ -12,57 +13,63 @@ class GameView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (_) => GameCubit()..loadUsers(),
-      child: Scaffold(
-        body: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              const SizedBox(
-                height: 64,
-              ),
-              Text(
-                'Guess who listens to this:',
-                style: TextStyle(
-                  fontSize: 28,
-                  fontWeight: FontWeight.bold,
-                  color: Theme.of(context).primaryColor,
+    return LeavingConfirmationPopscope(
+      // to do add disposing connection like in gameLobby view
+      child: BlocProvider(
+        create: (_) => GameCubit()..initialize(),
+        child: Scaffold(
+          body: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                const SizedBox(height: 64),
+                Text(
+                  'Guess who listens to this:',
+                  style: TextStyle(
+                    fontSize: 28,
+                    fontWeight: FontWeight.bold,
+                    color: Theme.of(context).primaryColor,
+                  ),
+                  textAlign: TextAlign.center,
                 ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 16),
-              const SongComponent(
-                songName: 'testSong',
-                songImageUrl: '',
-                songAuthor: 'testAuthor',
-              ),
-              const SizedBox(height: 24),
-              Expanded(
-                child: BlocBuilder<GameCubit, GameState>(
-                  builder: (context, state) {
-                    return GridView.builder(
-                      gridDelegate:
-                          const SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 2, // 2 items per row
-                        crossAxisSpacing: 16,
-                        mainAxisSpacing: 16,
-                        childAspectRatio: 1, // Square items
-                      ),
-                      itemCount: state.users.length,
-                      itemBuilder: (context, index) {
-                        final user = state.users[index];
-                        return SquareUserComponent(
-                          userName: user['userName']!,
-                          userImageUrl: user['userImageUrl']!,
-                        );
-                      },
-                    );
-                  },
+                const SizedBox(height: 16),
+                const SongComponent(
+                  songName: 'testSong',
+                  songImageUrl: '',
+                  songAuthor: 'testAuthor',
                 ),
-              ),
-            ],
+                const SizedBox(height: 24),
+                Expanded(
+                  child: BlocBuilder<GameCubit, GameState>(
+                    builder: (context, state) {
+                      return GridView.builder(
+                        gridDelegate:
+                            const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 2,
+                          crossAxisSpacing: 16,
+                          mainAxisSpacing: 16,
+                          childAspectRatio: 1,
+                        ),
+                        itemCount: state.users.length,
+                        itemBuilder: (context, index) {
+                          if (state.users.isEmpty) {
+                            return const Center(
+                                child: Text('No users available'));
+                          }
+                          final user = state.users[index];
+
+                          return SquareUserComponent(
+                            userName: user.displayName ?? '',
+                            userImageUrl: user.images?.firstOrNull?.url ?? '',
+                          );
+                        },
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),

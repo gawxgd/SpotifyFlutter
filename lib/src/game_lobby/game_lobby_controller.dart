@@ -10,14 +10,13 @@ import 'package:spotify_flutter/src/game_lobby/game_lobby_view_model.dart';
 import 'package:spotify_flutter/src/webRtc/communication_protocol.dart';
 import 'package:spotify_flutter/src/webRtc/hostpeer.dart';
 import 'package:spotify_flutter/src/webRtc/peerdart.dart';
-import 'package:spotify_flutter/src/webRtc/peersignalingbase.dart';
 import 'package:spotify_flutter/src/webRtc/signaling.dart';
 
 class GameLobbyController {
   final GameLobbyViewModel viewModel;
   final Signaling signaling = Signaling();
   final PeerSignaling peerSignaling = PeerSignaling();
-  final HostPeerSignaling hostPeerSignaling = HostPeerSignaling();
+  final HostPeerSignaling hostPeerSignaling = getIt.get<HostPeerSignaling>();
   User? hostPlayer;
 
   GameLobbyController(this.viewModel);

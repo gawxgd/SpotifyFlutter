@@ -7,7 +7,8 @@ import 'package:spotify_flutter/src/webRtc/communication_protocol.dart';
 import 'package:spotify_flutter/src/webRtc/joinpeer.dart';
 
 class JoinGameController {
-  final JoiningPeerSignaling joiningPeerSignaling = JoiningPeerSignaling();
+  final JoiningPeerSignaling joiningPeerSignaling =
+      getIt.get<JoiningPeerSignaling>();
 
   final Function(bool isConnected) onConnectionChanged;
   final Function(bool isHostStarted) onHostStarted;

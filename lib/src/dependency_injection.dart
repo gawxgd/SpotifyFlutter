@@ -3,11 +3,15 @@ import 'package:get_it/get_it.dart';
 import 'package:spotify/spotify.dart';
 import 'package:spotify_flutter/src/authorization/authorization_service.dart';
 import 'package:spotify_flutter/src/authorization/authorization_view.dart';
+import 'package:spotify_flutter/src/webRtc/hostpeer.dart';
+import 'package:spotify_flutter/src/webRtc/joinpeer.dart';
 
 final getIt = GetIt.instance;
 
 void setupDependencies() {
   setupAuthorizationService();
+  setupHostPeerSignaling();
+  setupJoiningPeerSignaling();
   //setupSpotifyApi();
 }
 
@@ -34,6 +38,15 @@ void setupSpotifyApi() {
   getIt.registerLazySingleton<SpotifyApi>(() {
     throw Exception('SpotifyApi not yet authorized. Call authorizeUser first.');
   });
+}
+
+void setupHostPeerSignaling() {
+  getIt.registerLazySingleton<HostPeerSignaling>(() => HostPeerSignaling());
+}
+
+void setupJoiningPeerSignaling() {
+  getIt.registerLazySingleton<JoiningPeerSignaling>(
+      () => JoiningPeerSignaling());
 }
 
 void updateSpotifyApi(SpotifyApi spotifyApi) {

@@ -58,7 +58,7 @@ class HostPeerSignaling extends PeerSignalingBase {
     });
 
     connection.on('close').listen((_) {
-      final user = FindUserFromDataConnection(connection);
+      final user = findUserFromDataConnection(connection);
       if (user != null) {
         if (onClosed != null) {
           onClosed(user);
@@ -77,7 +77,7 @@ class HostPeerSignaling extends PeerSignalingBase {
     }
   }
 
-  User? FindUserFromDataConnection(DataConnection connection) {
+  User? findUserFromDataConnection(DataConnection connection) {
     if (userToDataConnectionMap.isNotEmpty) {
       for (var item in userToDataConnectionMap.values) {
         if (item.$2.peer == connection.peer) {
@@ -112,6 +112,16 @@ class HostPeerSignaling extends PeerSignalingBase {
       }
       return true;
     });
+  }
+
+  List<User> getUserList() {
+    List<User> userList = [];
+    if (userToDataConnectionMap.isNotEmpty) {
+      for (var item in userToDataConnectionMap.values) {
+        userList.add(item.$1);
+      }
+    }
+    return userList;
   }
 
   @override

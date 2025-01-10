@@ -5,6 +5,7 @@ import 'package:qr_flutter/qr_flutter.dart';
 import 'package:spotify_flutter/src/components/leaving_confirmation/leaving_confirmation_dialog.dart';
 import 'package:spotify_flutter/src/components/leaving_confirmation/leaving_confirmation_popscope.dart';
 import 'package:spotify_flutter/src/components/user_component.dart';
+import 'package:spotify_flutter/src/game/game_view.dart';
 import 'game_lobby_controller.dart';
 import 'game_lobby_view_model.dart';
 
@@ -96,12 +97,17 @@ class GameLobbyView extends StatelessWidget {
                       const SizedBox(height: 8),
                       ElevatedButton(
                         onPressed: () async {
-                          final gameState = await controller.startGameAsync();
+                          await controller.startGameAsync();
+                          const gameState = true;
                           if (gameState == false) {
                             if (context.mounted) {
                               ScaffoldMessenger.of(context).showSnackBar(
                                   const SnackBar(
                                       content: Text('game failed to start')));
+                            }
+                          } else {
+                            if (context.mounted) {
+                              context.go(GameView.routeName);
                             }
                           }
                         },

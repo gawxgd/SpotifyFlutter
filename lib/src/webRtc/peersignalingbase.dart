@@ -71,6 +71,7 @@ abstract class PeerSignalingBase {
   Future<bool> sendMessageAsync(String message) async {
     // false when one message has failed
     if (dataConnections.isEmpty) {
+      debugPrint("data connection is empty");
       return false;
     }
     for (var connection in dataConnections) {
