@@ -33,6 +33,7 @@ dependencies:
   share_plus: ^10.1.3
   peerdart: any
   flutter_bloc: ^8.1.6
+  vibration: ^2.0.1
   
 dependency_overrides:
   flutter_webrtc: ^0.12.5

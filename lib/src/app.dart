@@ -7,10 +7,8 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:go_router/go_router.dart';
 import 'package:spotify_flutter/src/authorization/authorization_controller.dart';
 import 'package:spotify_flutter/src/authorization/authorization_view.dart';
-import 'package:spotify_flutter/src/dependency_injection.dart';
 import 'package:spotify_flutter/src/game/game_view.dart';
 import 'package:spotify_flutter/src/game_lobby/game_lobby_view.dart';
-import 'package:spotify_flutter/src/game_lobby/game_lobby_view_model.dart';
 import 'package:spotify_flutter/src/home/home_view.dart';
 import 'package:spotify_flutter/src/join_game/join_game_view.dart';
 import 'package:spotify_flutter/src/main_scaffold.dart';
@@ -18,7 +16,6 @@ import 'package:spotify_flutter/src/prepare_game/prepare_game_view.dart';
 import 'package:spotify_flutter/src/profile/profile_view.dart';
 import 'package:spotify_flutter/src/stats/stats_view.dart';
 
-import 'sample_feature/sample_item_details_view.dart';
 import 'settings/settings_controller.dart';
 import 'settings/settings_view.dart';
 

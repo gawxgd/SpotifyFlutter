@@ -4,7 +4,6 @@ import 'package:get_it/get_it.dart';
 import 'package:spotify_flutter/src/authorization/authorization_controller.dart';
 import 'package:spotify_flutter/src/authorization/authorization_service.dart';
 import 'package:spotify_flutter/src/dependency_injection.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 
 import 'src/app.dart';

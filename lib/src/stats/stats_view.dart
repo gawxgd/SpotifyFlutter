@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:spotify/spotify.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:spotify_flutter/src/components/artist_component.dart';
 import 'package:spotify_flutter/src/components/song_component.dart';
-import 'package:spotify_flutter/src/stats/stats_controller.dart';
+import 'package:spotify_flutter/src/stats/stats_cubit.dart';
 
-class StatsView extends StatefulWidget {
+class StatsView extends StatelessWidget {
   const StatsView({super.key});
 
   static const String routeName = '/stats';
@@ -12,44 +12,26 @@ class StatsView extends StatefulWidget {
   static const String name = 'Spotify stats';
 
   @override
-  StatsViewState createState() => StatsViewState();
-}
-
-class StatsViewState extends State<StatsView> {
-  final StatsController _controller = StatsController();
-  List<Map<String, String>> topSongs = [];
-  List<Map<String, String>> topArtists = [];
-  bool isLoading = true;
-
-  @override
-  void initState() {
-    super.initState();
-    _loadStats();
-  }
-
-  Future<void> _loadStats() async {
-    try {
-      final songsAndArtists = await _controller.fetchSongsAndArtists(context);
-      setState(() {
-        topSongs = songsAndArtists.$1;
-        topArtists = songsAndArtists.$2;
-        isLoading = false;
-      });
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to load stats: $e')),
-        );
-      }
-    }
-  }
-
-  @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : SingleChildScrollView(
+    return BlocProvider(
+      create: (_) => StatsCubit()..fetchSongsAndArtists(),
+      child: Scaffold(
+        body: BlocBuilder<StatsCubit, StatsState>(
+          builder: (context, state) {
+            if (state.isLoading) {
+              return const Center(child: CircularProgressIndicator());
+            }
+
+            if (state.error != null) {
+              return Center(
+                child: Text(
+                  'Failed to load stats: ${state.error}',
+                  style: const TextStyle(color: Colors.red),
+                ),
+              );
+            }
+
+            return SingleChildScrollView(
               padding: const EdgeInsets.all(16.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -59,10 +41,10 @@ class StatsViewState extends State<StatsView> {
                     'Top Songs',
                     style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                   ),
-                  if (topSongs.isEmpty)
+                  if (state.topSongs.isEmpty)
                     const Text('No songs available.')
                   else
-                    ...topSongs.map((song) {
+                    ...state.topSongs.map((song) {
                       return SongComponent(
                         songImageUrl: song['image'] ?? ' ',
                         songName: song['title'] ?? 'No title',
@@ -77,10 +59,10 @@ class StatsViewState extends State<StatsView> {
                     'Top Artists',
                     style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                   ),
-                  if (topArtists.isEmpty)
+                  if (state.topArtists.isEmpty)
                     const Text('No artists available.')
                   else
-                    ...topArtists.map((artist) {
+                    ...state.topArtists.map((artist) {
                       return ArtistComponent(
                         artistImageUrl: artist['image'] ?? '',
                         artistName: artist['title'] ?? 'Unknown artist',
@@ -88,7 +70,10 @@ class StatsViewState extends State<StatsView> {
                     }),
                 ],
               ),
-            ),
+            );
+          },
+        ),
+      ),
     );
   }
 }

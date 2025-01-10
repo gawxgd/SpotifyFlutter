@@ -8,6 +8,7 @@ import 'package:spotify_flutter/src/components/user_component.dart';
 import 'package:spotify_flutter/src/game/game_view.dart';
 import 'game_lobby_controller.dart';
 import 'game_lobby_view_model.dart';
+import 'package:vibration/vibration.dart';
 
 class GameLobbyView extends StatelessWidget {
   static const routeName = '/gameLobby';
@@ -97,6 +98,11 @@ class GameLobbyView extends StatelessWidget {
                       const SizedBox(height: 8),
                       ElevatedButton(
                         onPressed: () async {
+                          final canVibrate = await Vibration.hasVibrator();
+
+                          if (canVibrate != null && canVibrate == true) {
+                            Vibration.vibrate();
+                          }
                           await controller.startGameAsync();
                           const gameState = true;
                           if (gameState == false) {
