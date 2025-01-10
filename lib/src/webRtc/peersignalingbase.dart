@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:peerdart/peerdart.dart';
+import 'package:spotify/spotify.dart';
 
 typedef OnMessageCallback = void Function(
     String message, DataConnection connection);
@@ -84,12 +85,14 @@ abstract class PeerSignalingBase {
     return true;
   }
 
-  /// Close all connections and the peer
   void close() {
-    for (var connection in dataConnections) {
-      connection.close();
+    if (dataConnections.isNotEmpty) {
+      for (var connection in dataConnections) {
+        connection.close();
+      }
+      dataConnections.clear();
     }
-    dataConnections.clear();
+    peer.dispose();
     peer.close();
     debugPrint('Peer connection closed');
   }

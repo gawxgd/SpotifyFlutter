@@ -11,7 +11,7 @@ class HostPeerSignaling extends PeerSignalingBase {
   String? _roomId;
 
   /// Create a new room and save the Peer ID to Firestore
-  Future<String> createRoom() async {
+  Future<String> createRoom(Function(User) onClosed) async {
     await initializePeer(); // Ensure peer is initialized and opened
     if (localPeerId == null) {
       throw Exception('Peer ID is not initialized.');
@@ -27,19 +27,65 @@ class HostPeerSignaling extends PeerSignalingBase {
     peer.on('connection').listen((conn) {
       debugPrint('Incoming connection from: ${conn.peer}');
       dataConnections.add(conn);
-      setupDataConnection(conn, onOpen: () {
-        debugPrint('Data connection with ${conn.peer} is open');
-      });
+
+      setupDataConnection(
+        conn,
+        onOpen: () {
+          debugPrint('Data connection with ${conn.peer} is open');
+        },
+        onClosed: onClosed,
+      );
     });
 
     _roomId = roomRef.id;
     return roomRef.id;
   }
 
+  @override
+  void setupDataConnection(
+    DataConnection connection, {
+    required VoidCallback onOpen,
+    Function(User)? onClosed,
+  }) {
+    connection.on('data').listen((data) {
+      onMessageReceived?.call(data.toString(), connection);
+      debugPrint('Received message: $data');
+    });
+
+    connection.on('open').listen((_) {
+      debugPrint('Data connection with ${connection.peer} is open');
+      onOpen();
+    });
+
+    connection.on('close').listen((_) {
+      final user = FindUserFromDataConnection(connection);
+      if (user != null) {
+        if (onClosed != null) {
+          onClosed(user);
+        }
+      }
+    });
+
+    connection.on('error').listen((error) {
+      debugPrint('Data connection error: $error');
+    });
+  }
+
   void addUserToDataConnectionMapping(User user, DataConnection connection) {
     if (user.id != null) {
       userToDataConnectionMap.putIfAbsent(user.id!, () => (user, connection));
     }
+  }
+
+  User? FindUserFromDataConnection(DataConnection connection) {
+    if (userToDataConnectionMap.isNotEmpty) {
+      for (var item in userToDataConnectionMap.values) {
+        if (item.$2.peer == connection.peer) {
+          return item.$1;
+        }
+      }
+    }
+    return null;
   }
 
   void closeConnectionWithPeer(DataConnection connection, User player) {
@@ -52,6 +98,16 @@ class HostPeerSignaling extends PeerSignalingBase {
       if (conn.peer == connection.peer) {
         conn.close();
         conn.dispose();
+        return false;
+      }
+      return true;
+    });
+  }
+
+  void removeDisconnectedConnection(DataConnection connection, User player) {
+    userToDataConnectionMap.remove(player.id);
+    dataConnections.retainWhere((conn) {
+      if (conn.peer == connection.peer) {
         return false;
       }
       return true;

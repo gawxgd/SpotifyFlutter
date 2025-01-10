@@ -51,6 +51,7 @@ class JoinGameViewState extends State<JoinGameView> {
   Widget build(BuildContext context) {
     getRouteArgs();
     return LeavingConfirmationPopscope(
+      onDispose: _controller.LeaveGame,
       child: Scaffold(
         body: Center(
           child: _isHostStarted

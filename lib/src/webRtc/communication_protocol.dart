@@ -5,8 +5,8 @@ import 'package:peerdart/peerdart.dart';
 import 'package:spotify/spotify.dart';
 
 class CommunicationProtocol {
-  static const startGameMessage = "start";
-  static const newPlayerConnectedMessage = "player_connected";
+  static const startGameValue = "start";
+  static const newPlayerConnectedValue = "player_connected";
 
   static const typeField = "type";
   static const userField = "user";
@@ -15,13 +15,30 @@ class CommunicationProtocol {
     return jsonDecode(message) as Map<String, dynamic>;
   }
 
+  static String joinGameMessage(User spotifyUser) {
+    final message = {
+      CommunicationProtocol.typeField:
+          CommunicationProtocol.newPlayerConnectedValue,
+      CommunicationProtocol.userField: spotifyUser.toJson(),
+    };
+    debugPrint('Spotify user message sent:$message');
+    return jsonEncode(message);
+  }
+
+  static String startGameMessage() {
+    final message = {
+      CommunicationProtocol.typeField: CommunicationProtocol.startGameValue
+    };
+    return jsonEncode(message);
+  }
+
   static void onMessageReceivedHost(message, DataConnection connection,
       Function(User user, DataConnection connection) addPlayerCallback) {
     final decodedMessage = _decodeMessage(message);
     final type = decodedMessage[typeField];
 
     switch (type) {
-      case newPlayerConnectedMessage:
+      case newPlayerConnectedValue:
         {
           final playerMessage = decodedMessage[userField];
           _onNewPlayerConnected(playerMessage, connection, addPlayerCallback);
@@ -45,7 +62,7 @@ class CommunicationProtocol {
     final type = decodedMessage[typeField];
 
     switch (type) {
-      case startGameMessage:
+      case startGameValue:
         debugPrint('the host has started the game');
         callback();
         break;

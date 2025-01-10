@@ -27,7 +27,7 @@ class JoinGameController {
     final spotifyUser = await spotifyApi.me.get();
 
     await joiningPeerSignaling.joinRoom(roomId, onOpen: () {
-      sendSpotifyUserMessage(spotifyUser.toJson());
+      sendSpotifyUserMessage(spotifyUser);
     });
     debugPrint('Connected to room: $roomId');
     joiningPeerSignaling.onMessageReceived =
@@ -35,14 +35,9 @@ class JoinGameController {
     return true;
   }
 
-  Future<void> sendSpotifyUserMessage(Map<String, dynamic> spotifyUser) async {
-    final message = {
-      CommunicationProtocol.typeField:
-          CommunicationProtocol.newPlayerConnectedMessage,
-      CommunicationProtocol.userField: spotifyUser,
-    };
-    joiningPeerSignaling.sendMessage(jsonEncode(message));
-    debugPrint('Spotify user message sent: $spotifyUser');
+  Future<void> sendSpotifyUserMessage(User spotifyUser) async {
+    joiningPeerSignaling
+        .sendMessage(CommunicationProtocol.joinGameMessage(spotifyUser));
   }
 
   void onMessageReceivedEventHandler(message) {
@@ -59,5 +54,9 @@ class JoinGameController {
       debugPrint('Error connecting to the game: $e');
       onConnectionChanged(false);
     }
+  }
+
+  void LeaveGame() {
+    joiningPeerSignaling.close();
   }
 }

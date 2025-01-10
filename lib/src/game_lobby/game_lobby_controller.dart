@@ -25,13 +25,33 @@ class GameLobbyController {
   Future<void> initializeHost() async {
     // String roomId = await signaling.createRoom();
     //String roomId = await peerSignaling.createRoom();
-    String roomId = await hostPeerSignaling.createRoom();
+    String roomId =
+        await hostPeerSignaling.createRoom(onClosedConnectionWithUser);
     viewModel.updateDeepLink(
         'https://groovecheck-6bbf7.web.app/joingame?roomId=$roomId');
 
     hostPeerSignaling.onMessageReceived = (message, connection) {
       onMessageReceivedEventHandler(message, connection);
     };
+  }
+
+  void onClosedConnectionWithUser(User user) {
+    debugPrint("${user.id} with name ${user.displayName} disconnected");
+    deleteDisconnectedPlayer(user);
+  }
+
+  void deleteDisconnectedPlayer(User user) {
+    if (user.id != null) {
+      viewModel.removePlayerById(user.id!);
+    }
+    if (hostPeerSignaling.userToDataConnectionMap.containsKey(user.id)) {
+      var userWithConnection =
+          hostPeerSignaling.userToDataConnectionMap[user.id];
+      var connection = userWithConnection?.$2;
+      if (connection != null) {
+        hostPeerSignaling.removeDisconnectedConnection(connection, user);
+      }
+    }
   }
 
   void onMessageReceivedEventHandler(message, DataConnection connection) {
@@ -46,10 +66,8 @@ class GameLobbyController {
   }
 
   Future<bool> startGameAsync() async {
-    final message = {
-      CommunicationProtocol.typeField: CommunicationProtocol.startGameMessage,
-    };
-    return await hostPeerSignaling.sendMessageAsync(jsonEncode(message));
+    return await hostPeerSignaling
+        .sendMessageAsync(CommunicationProtocol.startGameMessage());
   }
 
   Future<void> sendMessageToPlayers(Map<String, dynamic> message) async {
