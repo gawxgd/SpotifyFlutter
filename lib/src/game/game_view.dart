@@ -34,10 +34,22 @@ class GameView extends StatelessWidget {
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 16),
-                const SongComponent(
-                  songName: 'testSong',
-                  songImageUrl: '',
-                  songAuthor: 'testAuthor',
+                BlocBuilder<GameCubit, GameState>(
+                  builder: (context, state) {
+                    final track = state.currentTrack;
+                    final user = state.currentUser;
+                    if (track != null && user != null) {
+                      return SongComponent(
+                        songName: track.name ?? 'Unknown Song',
+                        songImageUrl:
+                            track.album?.images?.firstOrNull?.url ?? '',
+                        songAuthor: track.artists?.firstOrNull?.name ??
+                            'Unknown Artist',
+                      );
+                    } else {
+                      return const Text('Loading song...');
+                    }
+                  },
                 ),
                 const SizedBox(height: 24),
                 Expanded(

@@ -11,9 +11,14 @@ class GameState {
   final List<User> users;
   final String? snackbarMessage;
   final Map<String, List<Track>> userIdToSongs;
+  final User? currentUser;
+  final Track? currentTrack;
 
   GameState(this.users,
-      {this.snackbarMessage, Map<String, List<Track>>? userIdToSongs})
+      {this.snackbarMessage,
+      Map<String, List<Track>>? userIdToSongs,
+      this.currentUser,
+      this.currentTrack})
       : userIdToSongs = userIdToSongs ?? {};
 }
 
@@ -77,6 +82,12 @@ class GameCubit extends Cubit<GameState> {
 
     if (updatedUserIdToSongs.length == state.users.length) {
       final question = getQuestion();
+      emit(GameState(
+        state.users,
+        userIdToSongs: updatedUserIdToSongs,
+        currentUser: question.$1,
+        currentTrack: question.$2,
+      ));
       debugPrint(
           'Selected Question: User: ${question.$1?.displayName}, Track: ${question.$2?.name}');
     }
