@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import 'package:spotify_flutter/src/prepare_game/prepare_game_controller.dart';
-import 'package:spotify_flutter/src/prepare_game/prepare_game_view_model.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:spotify_flutter/src/prepare_game/prepare_game_cubit.dart';
 
 class PrepareGameView extends StatelessWidget {
   static const routeName = '/prepareGame';
@@ -11,15 +10,17 @@ class PrepareGameView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (_) => PrepareGameViewModel(), // Providing the ViewModel here
-      child: Scaffold(
-        body: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: SingleChildScrollView(
-            child: Consumer<PrepareGameViewModel>(
-              builder: (context, model, _) {
-                return Column(
+    return BlocProvider(
+      create: (_) => PrepareGameCubit(),
+      child: BlocBuilder<PrepareGameCubit, PrepareGameState>(
+        builder: (context, state) {
+          final cubit = context.read<PrepareGameCubit>();
+
+          return Scaffold(
+            body: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: SingleChildScrollView(
+                child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     // Title with Logo
@@ -47,7 +48,7 @@ class PrepareGameView extends StatelessWidget {
 
                     // Number of Rounds
                     TextField(
-                      onChanged: (value) => model.rounds = value,
+                      onChanged: cubit.updateRounds,
                       keyboardType: TextInputType.number,
                       decoration: const InputDecoration(
                         labelText: 'Number of Rounds',
@@ -58,11 +59,15 @@ class PrepareGameView extends StatelessWidget {
 
                     // Game Mode Dropdown
                     DropdownButtonFormField<String>(
-                      value: model.gameMode,
+                      value: state.gameMode,
                       items: ['Standard', 'Challenge', 'Custom'].map((mode) {
                         return DropdownMenuItem(value: mode, child: Text(mode));
                       }).toList(),
-                      onChanged: (value) => model.gameMode = value!,
+                      onChanged: (value) {
+                        if (value != null) {
+                          cubit.updateGameMode(value);
+                        }
+                      },
                       decoration: const InputDecoration(
                         labelText: 'Game Mode',
                         border: OutlineInputBorder(),
@@ -72,33 +77,48 @@ class PrepareGameView extends StatelessWidget {
 
                     // Password Field with Show/Hide Option
                     TextField(
-                      onChanged: (value) => model.password = value,
-                      obscureText: !model.isPasswordVisible,
+                      onChanged: cubit.updatePassword,
+                      obscureText: !state.isPasswordVisible,
                       decoration: InputDecoration(
                         labelText: 'Password',
                         border: const OutlineInputBorder(),
                         suffixIcon: IconButton(
                           icon: Icon(
-                            model.isPasswordVisible
+                            state.isPasswordVisible
                                 ? Icons.visibility
                                 : Icons.visibility_off,
                           ),
-                          onPressed: () {
-                            model.isPasswordVisible = !model.isPasswordVisible;
-                          },
+                          onPressed: cubit.togglePasswordVisibility,
                         ),
                       ),
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Question Time Slider
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Question Time: ${state.questionTime} seconds',
+                          style: Theme.of(context).textTheme.bodyLarge,
+                        ),
+                        Slider(
+                          value: state.questionTime.toDouble(),
+                          min: 10,
+                          max: 120,
+                          divisions: 11,
+                          label: '${state.questionTime} seconds',
+                          onChanged: (value) =>
+                              cubit.updateQuestionTime(value.toInt()),
+                        ),
+                      ],
                     ),
                     const SizedBox(height: 32),
 
                     // Start Game Button
                     Center(
                       child: ElevatedButton(
-                        onPressed: () {
-                          // Pass the controller method here
-                          final controller = PrepareGameController(model);
-                          controller.startGame(context);
-                        },
+                        onPressed: () => cubit.startGame(context),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Theme.of(context).primaryColor,
                           padding: const EdgeInsets.symmetric(
@@ -117,11 +137,11 @@ class PrepareGameView extends StatelessWidget {
                       ),
                     ),
                   ],
-                );
-              },
+                ),
+              ),
             ),
-          ),
-        ),
+          );
+        },
       ),
     );
   }

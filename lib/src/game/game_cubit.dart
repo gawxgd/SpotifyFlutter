@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
@@ -13,23 +14,57 @@ class GameState {
   final Map<String, List<Track>> userIdToSongs;
   final User? currentUser;
   final Track? currentTrack;
+  final int remainingTime;
 
-  GameState(this.users,
-      {this.snackbarMessage,
-      Map<String, List<Track>>? userIdToSongs,
-      this.currentUser,
-      this.currentTrack})
-      : userIdToSongs = userIdToSongs ?? {};
+  GameState(
+    this.users, {
+    this.snackbarMessage,
+    Map<String, List<Track>>? userIdToSongs,
+    this.currentUser,
+    this.currentTrack,
+    this.remainingTime = GameCubit.defaultTime,
+  }) : userIdToSongs = userIdToSongs ?? {};
+
+  GameState copyWith({
+    List<User>? users,
+    String? snackbarMessage,
+    Map<String, List<Track>>? userIdToSongs,
+    User? currentUser,
+    Track? currentTrack,
+    int? remainingTime,
+  }) {
+    return GameState(
+      users ?? this.users,
+      snackbarMessage: snackbarMessage ?? this.snackbarMessage,
+      userIdToSongs: userIdToSongs ?? this.userIdToSongs,
+      currentUser: currentUser ?? this.currentUser,
+      currentTrack: currentTrack ?? this.currentTrack,
+      remainingTime: remainingTime ?? this.remainingTime,
+    );
+  }
 }
 
 class GameCubit extends Cubit<GameState> {
+  static const int defaultTime = 30;
+  Timer? timer;
+  final StreamController<int> timerStreamController =
+      StreamController<int>.broadcast();
   final HostPeerSignaling hostPeerSignaling = getIt.get<HostPeerSignaling>();
+
+  Stream<int> get timerStream => timerStreamController.stream;
 
   GameCubit() : super(GameState([], snackbarMessage: null)) {
     if (getIt.isRegistered<GameCubit>()) {
       getIt.unregister<GameCubit>();
     }
     getIt.registerLazySingleton<GameCubit>(() => this);
+  }
+
+  @override
+  Future<void> close() {
+    timerStreamController.close();
+    timer?.cancel();
+    return super.close();
   }
 
   void initialize() async {
@@ -82,6 +117,8 @@ class GameCubit extends Cubit<GameState> {
 
     if (updatedUserIdToSongs.length == state.users.length) {
       final question = getQuestion();
+      startTimer();
+
       emit(GameState(
         state.users,
         userIdToSongs: updatedUserIdToSongs,
@@ -109,4 +146,23 @@ class GameCubit extends Cubit<GameState> {
     final random = Random();
     return list[random.nextInt(list.length)];
   }
+
+  void startTimer() {
+    timer?.cancel();
+    timerStreamController.add(defaultTime);
+
+    int remainingTime = defaultTime;
+
+    timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (remainingTime <= 1) {
+        timer.cancel();
+        skipQuestion();
+      } else {
+        remainingTime--;
+        timerStreamController.add(remainingTime);
+      }
+    });
+  }
+
+  void skipQuestion() {}
 }

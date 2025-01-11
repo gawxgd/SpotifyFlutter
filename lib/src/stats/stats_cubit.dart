@@ -72,6 +72,7 @@ class StatsCubit extends Cubit<StatsState> {
   }
 
   Future<void> fetchSongsAndArtists() async {
+    emit(StatsState(isLoading: true));
     try {
       final spotifyApi = getIt.get<SpotifyApi>();
       final songs = await fetchTopSongs(spotifyApi);

@@ -12,7 +12,6 @@ abstract class PeerSignalingBase {
   List<DataConnection> dataConnections = [];
   OnMessageCallback? onMessageReceived;
 
-  /// Initialize the Peer connection
   Future<void> initializePeer({OnMessageCallback? onMessage}) async {
     onMessageReceived = onMessage;
     peer = Peer();
@@ -29,11 +28,9 @@ abstract class PeerSignalingBase {
       debugPrint('Peer error: $error');
     });
 
-    // Wait until the peer connection is open before proceeding
     await peerOpenCompleter.future;
   }
 
-  /// Set up a data connection
   void setupDataConnection(DataConnection connection,
       {required VoidCallback onOpen}) {
     connection.on('data').listen((data) {

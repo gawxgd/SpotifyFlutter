@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:spotify_flutter/src/components/leaving_confirmation/leaving_confirmation_popscope.dart';
 import 'package:spotify_flutter/src/components/song_component.dart';
 import 'package:spotify_flutter/src/components/square_user_component.dart';
+import 'package:spotify_flutter/src/components/timer_widget.dart';
 import 'package:spotify_flutter/src/game/game_cubit.dart';
 
 class GameView extends StatelessWidget {
@@ -14,7 +15,7 @@ class GameView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return LeavingConfirmationPopscope(
-      // to do add disposing connection like in gameLobby view
+      // Add disposing logic if necessary
       child: BlocProvider(
         create: (_) => GameCubit()..initialize(),
         child: Scaffold(
@@ -34,24 +35,65 @@ class GameView extends StatelessWidget {
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 16),
+
+                // Song component with timer and skip button
                 BlocBuilder<GameCubit, GameState>(
                   builder: (context, state) {
+                    final cubit = context.read<GameCubit>();
                     final track = state.currentTrack;
-                    final user = state.currentUser;
-                    if (track != null && user != null) {
-                      return SongComponent(
-                        songName: track.name ?? 'Unknown Song',
-                        songImageUrl:
-                            track.album?.images?.firstOrNull?.url ?? '',
-                        songAuthor: track.artists?.firstOrNull?.name ??
-                            'Unknown Artist',
-                      );
-                    } else {
-                      return const Text('Loading song...');
-                    }
+
+                    return Column(
+                      children: [
+                        // Song information
+                        track != null
+                            ? SongComponent(
+                                songName: track.name ?? 'Unknown Song',
+                                songImageUrl:
+                                    track.album?.images?.firstOrNull?.url ?? '',
+                                songAuthor: track.artists?.firstOrNull?.name ??
+                                    'Unknown Artist',
+                              )
+                            : const Text('Loading song...'),
+
+                        const SizedBox(height: 16),
+
+                        // Timer and Skip Button
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            // Timer
+                            StreamBuilder<int>(
+                              stream: cubit.timerStream,
+                              builder: (context, snapshot) {
+                                final remainingTime = snapshot.data ?? 0;
+                                return TimerWidget(
+                                    remainingTime: remainingTime);
+                              },
+                            ),
+                            // Skip Button
+                            ElevatedButton(
+                                onPressed: cubit.skipQuestion,
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor:
+                                      Theme.of(context).colorScheme.primary,
+                                ),
+                                child: Text(
+                                  'Skip',
+                                  style: TextStyle(
+                                    color:
+                                        Theme.of(context).colorScheme.onPrimary,
+                                  ),
+                                )),
+                          ],
+                        ),
+                      ],
+                    );
                   },
                 ),
+
                 const SizedBox(height: 24),
+
+                // User Grid
                 Expanded(
                   child: BlocBuilder<GameCubit, GameState>(
                     builder: (context, state) {
