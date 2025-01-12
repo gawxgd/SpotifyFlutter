@@ -4,6 +4,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:spotify/spotify.dart';
+import 'package:spotify_flutter/src/components/game_settings.dart';
 import 'package:spotify_flutter/src/dependency_injection.dart';
 import 'package:spotify_flutter/src/webRtc/communication_protocol.dart';
 import 'package:spotify_flutter/src/webRtc/hostpeer.dart';
@@ -14,7 +15,7 @@ class GameState {
   final Map<String, List<Track>> userIdToSongs;
   final User? currentUser;
   final Track? currentTrack;
-  final int remainingTime;
+  final int? remainingTime;
 
   GameState(
     this.users, {
@@ -22,7 +23,7 @@ class GameState {
     Map<String, List<Track>>? userIdToSongs,
     this.currentUser,
     this.currentTrack,
-    this.remainingTime = GameCubit.defaultTime,
+    this.remainingTime,
   }) : userIdToSongs = userIdToSongs ?? {};
 
   GameState copyWith({
@@ -45,7 +46,7 @@ class GameState {
 }
 
 class GameCubit extends Cubit<GameState> {
-  static const int defaultTime = 30;
+  static int defaultTime = 30;
   Timer? timer;
   final StreamController<int> timerStreamController =
       StreamController<int>.broadcast();
@@ -68,6 +69,10 @@ class GameCubit extends Cubit<GameState> {
   }
 
   void initialize() async {
+    if (getIt.isRegistered<GameSettings>()) {
+      final gameSettings = getIt.get<GameSettings>();
+      defaultTime = gameSettings.questionTime;
+    }
     await loadUsers();
     await requestUserSongs();
   }
@@ -98,7 +103,9 @@ class GameCubit extends Cubit<GameState> {
       if (songs.items != null && songs.items!.isNotEmpty) {
         updatedUserIdToSongs[me.id!] = songs.items!.take(10).toList();
         debugPrint("added myself");
-        emit(GameState(state.users, userIdToSongs: updatedUserIdToSongs));
+        emit(
+          GameState(state.users, userIdToSongs: updatedUserIdToSongs),
+        );
       }
     }
     await hostPeerSignaling
@@ -117,14 +124,14 @@ class GameCubit extends Cubit<GameState> {
 
     if (updatedUserIdToSongs.length == state.users.length) {
       final question = getQuestion();
-      startTimer();
 
-      emit(GameState(
-        state.users,
-        userIdToSongs: updatedUserIdToSongs,
-        currentUser: question.$1,
-        currentTrack: question.$2,
-      ));
+      emit(GameState(state.users,
+          userIdToSongs: updatedUserIdToSongs,
+          currentUser: question.$1,
+          currentTrack: question.$2,
+          remainingTime: defaultTime));
+
+      startTimer();
       debugPrint(
           'Selected Question: User: ${question.$1?.displayName}, Track: ${question.$2?.name}');
     }

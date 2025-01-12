@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:spotify_flutter/src/components/game_settings.dart';
+import 'package:spotify_flutter/src/dependency_injection.dart';
 import 'package:spotify_flutter/src/game_lobby/game_lobby_view.dart';
 
 class PrepareGameCubit extends Cubit<PrepareGameState> {
@@ -34,7 +36,16 @@ class PrepareGameCubit extends Cubit<PrepareGameState> {
       );
       return;
     }
-
+    final gameSettings = GameSettings(
+      gameMode: state.gameMode,
+      rounds: state.rounds,
+      password: state.password,
+      questionTime: state.questionTime,
+    );
+    if (getIt.isRegistered<GameSettings>()) {
+      getIt.unregister<GameSettings>();
+    }
+    getIt.registerSingleton(gameSettings);
     context.go(GameLobbyView.routeName);
   }
 
