@@ -97,6 +97,7 @@ class GameView extends StatelessWidget {
                 Expanded(
                   child: BlocBuilder<GameCubit, GameState>(
                     builder: (context, state) {
+                      final cubit = context.read<GameCubit>();
                       return GridView.builder(
                         gridDelegate:
                             const SliverGridDelegateWithFixedCrossAxisCount(
@@ -113,10 +114,24 @@ class GameView extends StatelessWidget {
                           }
                           final user = state.users[index];
 
-                          return SquareUserComponent(
-                            userName: user.displayName ?? '',
-                            userImageUrl: user.images?.firstOrNull?.url ?? '',
-                          );
+                          return InkWell(
+                              onTap: () => cubit.userAnswered(user),
+                              child: state.answeredUser?.id == user.id
+                                  ? SquareUserComponent(
+                                      hasUserAnswerd:
+                                          state.hasUserAnswerd ?? false,
+                                      isCorrectAnswer:
+                                          state.isCorrectAnswer ?? false,
+                                      userName: user.displayName ?? '',
+                                      userImageUrl:
+                                          user.images?.firstOrNull?.url ?? '',
+                                    )
+                                  : SquareUserComponent(
+                                      userName: user.displayName ?? '',
+                                      userImageUrl:
+                                          user.images?.firstOrNull?.url ?? '',
+                                      isCorrectAnswer: false,
+                                      hasUserAnswerd: false));
                         },
                       );
                     },

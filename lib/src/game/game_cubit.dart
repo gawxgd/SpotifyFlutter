@@ -16,6 +16,9 @@ class GameState {
   final User? currentUser;
   final Track? currentTrack;
   final int? remainingTime;
+  final bool? isCorrectAnswer;
+  final bool? hasUserAnswerd;
+  final User? answeredUser;
 
   GameState(
     this.users, {
@@ -24,6 +27,9 @@ class GameState {
     this.currentUser,
     this.currentTrack,
     this.remainingTime,
+    this.isCorrectAnswer = false,
+    this.hasUserAnswerd = false,
+    this.answeredUser,
   }) : userIdToSongs = userIdToSongs ?? {};
 
   GameState copyWith({
@@ -33,6 +39,9 @@ class GameState {
     User? currentUser,
     Track? currentTrack,
     int? remainingTime,
+    bool? hasUserAnswerd,
+    bool? isCorrectAnswer,
+    User? answeredUser,
   }) {
     return GameState(
       users ?? this.users,
@@ -41,6 +50,9 @@ class GameState {
       currentUser: currentUser ?? this.currentUser,
       currentTrack: currentTrack ?? this.currentTrack,
       remainingTime: remainingTime ?? this.remainingTime,
+      hasUserAnswerd: hasUserAnswerd ?? this.hasUserAnswerd,
+      isCorrectAnswer: isCorrectAnswer ?? this.isCorrectAnswer,
+      answeredUser: answeredUser ?? this.answeredUser,
     );
   }
 }
@@ -51,6 +63,7 @@ class GameCubit extends Cubit<GameState> {
   final StreamController<int> timerStreamController =
       StreamController<int>.broadcast();
   final HostPeerSignaling hostPeerSignaling = getIt.get<HostPeerSignaling>();
+  (User?, Track?)? question;
 
   Stream<int> get timerStream => timerStreamController.stream;
 
@@ -123,17 +136,17 @@ class GameCubit extends Cubit<GameState> {
         updatedUserIdToSongs.length.toString() + state.users.length.toString());
 
     if (updatedUserIdToSongs.length == state.users.length) {
-      final question = getQuestion();
+      question = getQuestion();
 
       emit(GameState(state.users,
           userIdToSongs: updatedUserIdToSongs,
-          currentUser: question.$1,
-          currentTrack: question.$2,
+          currentUser: question!.$1,
+          currentTrack: question!.$2,
           remainingTime: defaultTime));
 
       startTimer();
       debugPrint(
-          'Selected Question: User: ${question.$1?.displayName}, Track: ${question.$2?.name}');
+          'Selected Question: User: ${question!.$1?.displayName}, Track: ${question!.$2?.name}');
     }
   }
 
@@ -172,4 +185,20 @@ class GameCubit extends Cubit<GameState> {
   }
 
   void skipQuestion() {}
+
+  void userAnswered(User choosenUser) {
+    if (question != null && timer!.isActive) {
+      if (question!.$1 == choosenUser) {
+        emit(state.copyWith(
+            isCorrectAnswer: true,
+            hasUserAnswerd: true,
+            answeredUser: choosenUser));
+      } else {
+        emit(state.copyWith(
+            isCorrectAnswer: false,
+            hasUserAnswerd: true,
+            answeredUser: choosenUser));
+      }
+    }
+  }
 }
