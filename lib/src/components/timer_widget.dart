@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:vibration/vibration.dart';
 
 class TimerWidget extends StatelessWidget {
   final int remainingTime;
@@ -27,7 +28,9 @@ class TimerWidget extends StatelessWidget {
           Text(
             formatTime(remainingTime),
             style: TextStyle(
-              color: Theme.of(context).colorScheme.onPrimary,
+              color: remainingTime <= 5
+                  ? Colors.red
+                  : Theme.of(context).colorScheme.onPrimary,
               fontWeight: FontWeight.bold,
               fontSize: 16.0,
             ),

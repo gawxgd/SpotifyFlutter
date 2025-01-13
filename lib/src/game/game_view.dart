@@ -65,7 +65,7 @@ class GameView extends StatelessWidget {
                             StreamBuilder<int>(
                               stream: cubit.timerStream,
                               builder: (context, snapshot) {
-                                final remainingTime = snapshot.data ?? 0;
+                                final remainingTime = snapshot.data ?? 30;
                                 return TimerWidget(
                                     remainingTime: remainingTime);
                               },
