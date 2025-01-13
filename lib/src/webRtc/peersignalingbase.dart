@@ -77,7 +77,8 @@ abstract class PeerSignalingBase {
         debugPrint('Sent message to ${connection.peer}: $message');
       } else {
         debugPrint('Connection to ${connection.peer} is not open.');
-        return false;
+        // remove closed connection here
+        //return false;
       }
     }
     return true;
@@ -90,8 +91,12 @@ abstract class PeerSignalingBase {
       }
       dataConnections.clear();
     }
-    peer.dispose();
-    peer.close();
+    try {
+      if (peer.open) {
+        peer.dispose();
+        peer.close();
+      }
+    } catch (e) {}
     debugPrint('Peer connection closed');
   }
 }

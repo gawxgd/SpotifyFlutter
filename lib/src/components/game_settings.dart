@@ -2,7 +2,7 @@ import 'dart:core';
 
 class GameSettings {
   String gameMode;
-  String rounds;
+  int rounds;
   String password;
   int questionTime;
 

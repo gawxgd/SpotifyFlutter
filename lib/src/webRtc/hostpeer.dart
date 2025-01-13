@@ -126,7 +126,12 @@ class HostPeerSignaling extends PeerSignalingBase {
 
   @override
   void close() {
-    // clear the map here
+    for (var item in userToDataConnectionMap.values) {
+      if (item.$2.open) {
+        item.$2.close();
+      }
+    }
+    userToDataConnectionMap.clear();
     super.close();
 
     if (_roomId != null) {

@@ -7,6 +7,7 @@ import 'package:spotify/spotify.dart';
 import 'package:spotify_flutter/src/dependency_injection.dart';
 import 'package:spotify_flutter/src/webRtc/communication_protocol.dart';
 import 'package:spotify_flutter/src/webRtc/hostpeer.dart';
+import 'package:vibration/vibration.dart';
 
 class GameLobbyState {
   final String deepLink;
@@ -18,7 +19,7 @@ class GameLobbyState {
     this.deepLink = '',
     this.players = const [],
     this.gameStarted = false,
-    this.loading = false,
+    this.loading = true,
   });
 
   GameLobbyState copyWith({
@@ -48,6 +49,8 @@ class GameLobbyCubit extends Cubit<GameLobbyState> {
     emit(state.copyWith(
         deepLink: 'https://groovecheck-6bbf7.web.app/joingame?roomId=$roomId'));
 
+    addHostPlayer();
+    emit(state.copyWith(loading: false));
     hostPeerSignaling.onMessageReceived = (message, connection) {
       onMessageReceivedEventHandler(message, connection);
     };
@@ -73,7 +76,7 @@ class GameLobbyCubit extends Cubit<GameLobbyState> {
   }
 
   void removePlayerById(String userId) {
-    var tempPlayers = state.players;
+    var tempPlayers = List<User>.from(state.players);
     tempPlayers.removeWhere((player) => player.id == userId);
     emit(state.copyWith(players: tempPlayers));
   }
@@ -90,12 +93,16 @@ class GameLobbyCubit extends Cubit<GameLobbyState> {
   }
 
   void addPlayer(User player) {
-    var tempPlayers = state.players;
+    var tempPlayers = List<User>.from(state.players);
     tempPlayers.add(player);
     emit(state.copyWith(players: tempPlayers));
   }
 
   Future<bool> startGameAsync() async {
+    final canVibrate = await Vibration.hasVibrator();
+    if (canVibrate != null && canVibrate) {
+      Vibration.vibrate();
+    }
     return await hostPeerSignaling
         .sendMessageAsync(CommunicationProtocol.startGameMessage());
   }
@@ -108,7 +115,8 @@ class GameLobbyCubit extends Cubit<GameLobbyState> {
     Clipboard.setData(ClipboardData(text: state.deepLink));
   }
 
-  Future<void> shareDeepLink(BuildContext context) async { // get rid of buildContext
+  Future<void> shareDeepLink(BuildContext context) async {
+    // get rid of buildContext
     final result =
         await Share.share('Play GrooveCheck with me ${state.deepLink}');
 
@@ -137,7 +145,7 @@ class GameLobbyCubit extends Cubit<GameLobbyState> {
   void deletePlayer(User player) {
     if (player.id != null) {
       removePlayerById(player.id!);
-    } // Remove the player from the list
+    }
     if (hostPeerSignaling.userToDataConnectionMap.containsKey(player.id)) {
       var userWithConnection =
           hostPeerSignaling.userToDataConnectionMap[player.id];
@@ -145,7 +153,6 @@ class GameLobbyCubit extends Cubit<GameLobbyState> {
       if (connection != null) {
         hostPeerSignaling.closeConnectionWithPeer(connection, player);
       }
-      hostPeerSignaling.userToDataConnectionMap.remove()
     }
   }
 }

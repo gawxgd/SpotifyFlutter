@@ -11,6 +11,7 @@ import 'package:spotify_flutter/src/game/game_view.dart';
 import 'package:spotify_flutter/src/game_lobby/game_lobby_view.dart';
 import 'package:spotify_flutter/src/home/home_view.dart';
 import 'package:spotify_flutter/src/join_game/join_game_view.dart';
+import 'package:spotify_flutter/src/leaderboard/leaderboard_view.dart';
 import 'package:spotify_flutter/src/main_scaffold.dart';
 import 'package:spotify_flutter/src/prepare_game/prepare_game_view.dart';
 import 'package:spotify_flutter/src/profile/profile_view.dart';
@@ -94,7 +95,7 @@ class _MyAppState extends State<MyApp> {
         ),
         GoRoute(
           path: GameLobbyView.routeName,
-          builder: (context, state) => MainScaffold(
+          builder: (context, state) => const MainScaffold(
             title: GameLobbyView.name,
             body: GameLobbyView(),
           ),
@@ -110,6 +111,11 @@ class _MyAppState extends State<MyApp> {
             path: GameView.routeName,
             builder: (context, state) {
               return const GameView();
+            }),
+        GoRoute(
+            path: LeaderboardView.routeName,
+            builder: (context, state) {
+              return const LeaderboardView();
             }),
       ],
       redirect: (context, state) async {

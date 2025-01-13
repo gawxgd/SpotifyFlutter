@@ -38,7 +38,7 @@ class PrepareGameCubit extends Cubit<PrepareGameState> {
     }
     final gameSettings = GameSettings(
       gameMode: state.gameMode,
-      rounds: state.rounds,
+      rounds: int.parse(state.rounds),
       password: state.password,
       questionTime: state.questionTime,
     );

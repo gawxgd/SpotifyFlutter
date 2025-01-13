@@ -5,6 +5,7 @@ class UserComponent extends StatelessWidget {
   final String userImageUrl;
   final VoidCallback onDelete;
   final bool canDelete;
+  final bool isHost;
 
   const UserComponent({
     super.key,
@@ -12,6 +13,7 @@ class UserComponent extends StatelessWidget {
     required this.userImageUrl,
     required this.onDelete,
     this.canDelete = true,
+    this.isHost = false,
   });
 
   @override
@@ -32,7 +34,7 @@ class UserComponent extends StatelessWidget {
           backgroundImage: NetworkImage(userImageUrl),
           backgroundColor: Colors.grey[200],
         ),
-        title: canDelete
+        title: isHost
             ? Text(
                 "host: $userName",
                 style: const TextStyle(fontWeight: FontWeight.bold),

@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:spotify/spotify.dart';
 import 'package:spotify_flutter/src/components/game_settings.dart';
+import 'package:spotify_flutter/src/components/score.dart';
 import 'package:spotify_flutter/src/dependency_injection.dart';
 import 'package:spotify_flutter/src/webRtc/communication_protocol.dart';
 import 'package:spotify_flutter/src/webRtc/hostpeer.dart';
@@ -19,6 +20,7 @@ class GameState {
   final bool? isCorrectAnswer;
   final bool? hasUserAnswerd;
   final User? answeredUser;
+  final int? roundNumber;
 
   GameState(
     this.users, {
@@ -30,6 +32,7 @@ class GameState {
     this.isCorrectAnswer = false,
     this.hasUserAnswerd = false,
     this.answeredUser,
+    this.roundNumber,
   }) : userIdToSongs = userIdToSongs ?? {};
 
   GameState copyWith({
@@ -42,6 +45,7 @@ class GameState {
     bool? hasUserAnswerd,
     bool? isCorrectAnswer,
     User? answeredUser,
+    int? roundNumber,
   }) {
     return GameState(
       users ?? this.users,
@@ -53,6 +57,7 @@ class GameState {
       hasUserAnswerd: hasUserAnswerd ?? this.hasUserAnswerd,
       isCorrectAnswer: isCorrectAnswer ?? this.isCorrectAnswer,
       answeredUser: answeredUser ?? this.answeredUser,
+      roundNumber: roundNumber ?? this.roundNumber,
     );
   }
 }
@@ -66,18 +71,23 @@ class GameCubit extends Cubit<GameState> {
   (User?, Track?)? question;
 
   Stream<int> get timerStream => timerStreamController.stream;
+  Map<String, (User, int)>? userIdToPoints;
+  User? host;
 
   GameCubit() : super(GameState([], snackbarMessage: null)) {
+    // if (getIt.isRegistered<GameCubit>()) {
+    //   getIt.unregister<GameCubit>();
+    // }
+    // getIt.registerLazySingleton<GameCubit>(() => this);
+  }
+
+  Future<void> leave() {
+    timerStreamController.close();
+    timer?.cancel();
+    hostPeerSignaling.close();
     if (getIt.isRegistered<GameCubit>()) {
       getIt.unregister<GameCubit>();
     }
-    getIt.registerLazySingleton<GameCubit>(() => this);
-  }
-
-  @override
-  Future<void> close() {
-    timerStreamController.close();
-    timer?.cancel();
     return super.close();
   }
 
@@ -85,8 +95,14 @@ class GameCubit extends Cubit<GameState> {
     if (getIt.isRegistered<GameSettings>()) {
       final gameSettings = getIt.get<GameSettings>();
       defaultTime = gameSettings.questionTime;
+      emit(state.copyWith(roundNumber: gameSettings.rounds));
     }
+    userIdToPoints = {};
     await loadUsers();
+    for (var user in state.users) {
+      userIdToPoints?[user.id!] = (user, 0);
+      debugPrint('user.id + ${userIdToPoints?[user.id!].toString()}');
+    }
     await requestUserSongs();
   }
 
@@ -95,6 +111,7 @@ class GameCubit extends Cubit<GameState> {
     final spotifyApi = getIt.get<SpotifyApi>();
     final me = await spotifyApi.me.get();
     userList.add(me);
+    host = me;
 
     if (userList.isNotEmpty) {
       emit(GameState(userList));
@@ -174,9 +191,8 @@ class GameCubit extends Cubit<GameState> {
     int remainingTime = defaultTime;
 
     timer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      if (remainingTime <= 1) {
+      if (remainingTime == 0) {
         timer.cancel();
-        skipQuestion();
       } else {
         remainingTime--;
         timerStreamController.add(remainingTime);
@@ -184,11 +200,43 @@ class GameCubit extends Cubit<GameState> {
     });
   }
 
-  void skipQuestion() {}
+  void skipQuestion() {
+    final scoreList = makeScoreList();
+    final score = Score(usersScore: scoreList);
+    if (getIt.isRegistered<Score>()) {
+      getIt.unregister<Score>();
+    }
+    getIt.registerSingleton(score);
+    if (state.roundNumber != null) {
+      emit(state.copyWith(roundNumber: state.roundNumber! - 1));
+    }
+  }
+
+  List<MapEntry<User, int>> makeScoreList() {
+    List<MapEntry<User, int>> scoreList = [];
+
+    userIdToPoints!.forEach((userId, userStat) {
+      var user = userStat.$1;
+      var score = userStat.$2;
+      scoreList.add(MapEntry(user, score));
+      debugPrint("$user + $score");
+    });
+
+    scoreList.sort((a, b) => b.value.compareTo(a.value));
+    return scoreList;
+  }
 
   void userAnswered(User choosenUser) {
     if (question != null && timer!.isActive) {
       if (question!.$1 == choosenUser) {
+        if (userIdToPoints!.containsKey(host!.id)) {
+          var hostStat = userIdToPoints![host!.id];
+          var user = hostStat!.$1;
+          var score = hostStat.$2;
+          score++;
+          userIdToPoints![host!.id!] = (user, score);
+          debugPrint(score.toString());
+        }
         emit(state.copyWith(
             isCorrectAnswer: true,
             hasUserAnswerd: true,
