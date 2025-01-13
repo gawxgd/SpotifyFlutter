@@ -224,7 +224,8 @@ class GameCubit extends Cubit<GameState> {
     });
   }
 
-  void skipQuestion() {
+  Future<void> skipQuestion() async {
+    // toDo send to others that the round has ended
     final scoreList = makeScoreList();
     final score = Score(usersScore: scoreList);
     if (getIt.isRegistered<Score>()) {
@@ -241,6 +242,9 @@ class GameCubit extends Cubit<GameState> {
         roundNumber: state.roundNumber,
         userIdToSongs: state.userIdToSongs);
     getIt.registerSingleton(roundConfig);
+
+    await hostPeerSignaling
+        .sendMessageAsync(CommunicationProtocol.endOfTheRoundMessage());
   }
 
   List<MapEntry<User, int>> makeScoreList() {
@@ -258,6 +262,7 @@ class GameCubit extends Cubit<GameState> {
   }
 
   void userAnswered(User choosenUser) {
+    // toDo wait for others to show correct answer
     if (question != null && timer!.isActive) {
       if (question!.$1 == choosenUser) {
         if (userIdToPoints!.containsKey(host!.id)) {

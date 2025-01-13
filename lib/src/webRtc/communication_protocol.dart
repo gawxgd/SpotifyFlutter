@@ -12,6 +12,7 @@ class CommunicationProtocol {
   static const newPlayerConnectedValue = "player_connected";
   static const userSongsValue = "user_songs";
   static const requestUserSongsValue = "request_user_songs";
+  static const endOfTheRoundValue = "end_of_round";
 
   static const typeField = "type";
   static const userField = "user";
@@ -55,6 +56,13 @@ class CommunicationProtocol {
           songs.map((song) => song.toJson()).toList()
     };
     debugPrint(jsonEncode(message));
+    return jsonEncode(message);
+  }
+
+  static String endOfTheRoundMessage() {
+    final message = {
+      CommunicationProtocol.typeField: CommunicationProtocol.endOfTheRoundValue,
+    };
     return jsonEncode(message);
   }
 
@@ -109,6 +117,10 @@ class CommunicationProtocol {
         {
           debugPrint("host requested my songs");
           onHostRequestedUserSongs();
+        }
+      case endOfTheRoundValue:
+        {
+          debugPrint("the round has ended");
         }
     }
   }
