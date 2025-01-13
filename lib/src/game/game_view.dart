@@ -18,16 +18,7 @@ class GameView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider<GameCubit>(
-      create: (_) {
-        if (getIt.isRegistered<GameCubit>()) {
-          return getIt.get<GameCubit>();
-        } else {
-          final cubit = GameCubit();
-          getIt.registerSingleton(cubit);
-          cubit.initialize();
-          return cubit;
-        }
-      },
+      create: (_) => GameCubit()..initialize(),
       child: BlocBuilder<GameCubit, GameState>(
         builder: (context, state) {
           final cubit = context.read<GameCubit>();

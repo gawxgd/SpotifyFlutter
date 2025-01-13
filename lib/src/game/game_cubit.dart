@@ -7,6 +7,7 @@ import 'package:spotify/spotify.dart';
 import 'package:spotify_flutter/src/components/game_settings.dart';
 import 'package:spotify_flutter/src/components/score.dart';
 import 'package:spotify_flutter/src/dependency_injection.dart';
+import 'package:spotify_flutter/src/game/round_config.dart';
 import 'package:spotify_flutter/src/webRtc/communication_protocol.dart';
 import 'package:spotify_flutter/src/webRtc/hostpeer.dart';
 
@@ -75,10 +76,10 @@ class GameCubit extends Cubit<GameState> {
   User? host;
 
   GameCubit() : super(GameState([], snackbarMessage: null)) {
-    // if (getIt.isRegistered<GameCubit>()) {
-    //   getIt.unregister<GameCubit>();
-    // }
-    // getIt.registerLazySingleton<GameCubit>(() => this);
+    if (getIt.isRegistered<GameCubit>()) {
+      getIt.unregister<GameCubit>();
+    }
+    getIt.registerLazySingleton<GameCubit>(() => this);
   }
 
   Future<void> leave() {
@@ -92,6 +93,14 @@ class GameCubit extends Cubit<GameState> {
   }
 
   void initialize() async {
+    if (getIt.isRegistered<RoundConfig>()) {
+      await nextRoundInitialization();
+    } else {
+      await firstRoundInitialization();
+    }
+  }
+
+  Future<void> firstRoundInitialization() async {
     if (getIt.isRegistered<GameSettings>()) {
       final gameSettings = getIt.get<GameSettings>();
       defaultTime = gameSettings.questionTime;
@@ -104,6 +113,21 @@ class GameCubit extends Cubit<GameState> {
       debugPrint('user.id + ${userIdToPoints?[user.id!].toString()}');
     }
     await requestUserSongs();
+  }
+
+  Future<void> nextRoundInitialization() async {
+    final roundConfig = getIt.get<RoundConfig>();
+    emit(GameState(roundConfig.users,
+        userIdToSongs: roundConfig.userIdToSongs,
+        roundNumber: roundConfig.roundNumber));
+    question = getQuestion();
+    emit(state.copyWith(currentTrack: question!.$2, currentUser: question!.$1));
+    userIdToPoints = roundConfig.userIdToPoints;
+    final spotifyApi = getIt.get<SpotifyApi>();
+    final me = await spotifyApi.me.get();
+    host = me;
+    getIt.unregister<RoundConfig>();
+    startTimer();
   }
 
   Future<void> loadUsers() async {
@@ -207,9 +231,16 @@ class GameCubit extends Cubit<GameState> {
       getIt.unregister<Score>();
     }
     getIt.registerSingleton(score);
+
     if (state.roundNumber != null) {
       emit(state.copyWith(roundNumber: state.roundNumber! - 1));
     }
+    final roundConfig = RoundConfig(
+        users: state.users,
+        userIdToPoints: userIdToPoints,
+        roundNumber: state.roundNumber,
+        userIdToSongs: state.userIdToSongs);
+    getIt.registerSingleton(roundConfig);
   }
 
   List<MapEntry<User, int>> makeScoreList() {
