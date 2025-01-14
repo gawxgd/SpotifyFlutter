@@ -22,6 +22,7 @@ class GameHostState {
   final bool? hasUserAnswerd;
   final User? answeredUser;
   final int? roundNumber;
+  final bool? showAnswer;
 
   GameHostState(
     this.users, {
@@ -34,6 +35,7 @@ class GameHostState {
     this.hasUserAnswerd = false,
     this.answeredUser,
     this.roundNumber,
+    this.showAnswer = false,
   }) : userIdToSongs = userIdToSongs ?? {};
 
   GameHostState copyWith({
@@ -47,6 +49,7 @@ class GameHostState {
     bool? isCorrectAnswer,
     User? answeredUser,
     int? roundNumber,
+    bool? showAnswer,
   }) {
     return GameHostState(
       users ?? this.users,
@@ -59,6 +62,7 @@ class GameHostState {
       isCorrectAnswer: isCorrectAnswer ?? this.isCorrectAnswer,
       answeredUser: answeredUser ?? this.answeredUser,
       roundNumber: roundNumber ?? this.roundNumber,
+      showAnswer: showAnswer ?? this.showAnswer,
     );
   }
 }
@@ -303,5 +307,9 @@ class GameHostCubit extends Cubit<GameHostState> {
           CommunicationProtocol.hostRoundInitializationMessage(
               state.users, state.currentUser!.id!, state.currentTrack!));
     }
+  }
+
+  void showAnswer() {
+    emit(state.copyWith(showAnswer: true));
   }
 }

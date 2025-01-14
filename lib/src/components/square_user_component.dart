@@ -5,6 +5,7 @@ class SquareUserComponent extends StatelessWidget {
   final String userImageUrl;
   final bool isCorrectAnswer;
   final bool hasUserAnswerd;
+  final bool? isSelected;
 
   const SquareUserComponent({
     super.key,
@@ -12,6 +13,7 @@ class SquareUserComponent extends StatelessWidget {
     required this.userImageUrl,
     required this.isCorrectAnswer,
     required this.hasUserAnswerd,
+    this.isSelected,
   });
 
   Future<bool> _isImageValid(String url) async {
@@ -27,12 +29,14 @@ class SquareUserComponent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     Color getBackgroundColor() {
-      if (!hasUserAnswerd) {
-        return Theme.of(context).cardColor;
-      } else if (isCorrectAnswer) {
+      if (isSelected != null && isSelected == true && !hasUserAnswerd) {
+        return Theme.of(context).colorScheme.primary;
+      } else if (isCorrectAnswer && hasUserAnswerd) {
         return Colors.green;
-      } else {
+      } else if (isCorrectAnswer == false && hasUserAnswerd) {
         return Colors.red;
+      } else {
+        return Theme.of(context).cardColor;
       }
     }
 

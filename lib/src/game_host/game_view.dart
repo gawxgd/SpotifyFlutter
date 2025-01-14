@@ -76,24 +76,39 @@ class GameHostView extends StatelessWidget {
                                     remainingTime: remainingTime);
                               },
                             ),
-                            // Skip Button
-                            ElevatedButton(
-                              onPressed: () {
-                                cubit.skipQuestion();
-                                context.go(LeaderboardView.routeName);
-                              },
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor:
-                                    Theme.of(context).colorScheme.primary,
-                              ),
-                              child: Text(
-                                'Skip',
-                                style: TextStyle(
-                                  color:
-                                      Theme.of(context).colorScheme.onPrimary,
-                                ),
-                              ),
-                            ),
+                            state.showAnswer != null && state.showAnswer == true
+                                ? ElevatedButton(
+                                    onPressed: () {
+                                      cubit.skipQuestion();
+                                      context.go(LeaderboardView.routeName);
+                                    },
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor:
+                                          Theme.of(context).colorScheme.primary,
+                                    ),
+                                    child: Text(
+                                      'Skip',
+                                      style: TextStyle(
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .onPrimary,
+                                      ),
+                                    ),
+                                  )
+                                : ElevatedButton(
+                                    onPressed: () {
+                                      cubit.showAnswer();
+                                    },
+                                    style: ElevatedButton.styleFrom(
+                                        backgroundColor: Theme.of(context)
+                                            .colorScheme
+                                            .primary),
+                                    child: Text('Show Answers',
+                                        style: TextStyle(
+                                          color: Theme.of(context)
+                                              .colorScheme
+                                              .onPrimary,
+                                        ))),
                           ],
                         ),
                       ],
@@ -118,17 +133,24 @@ class GameHostView extends StatelessWidget {
                                 final user = state.users[index];
 
                                 return InkWell(
-                                  onTap: () => cubit.userAnswered(user),
+                                  onTap: () => {
+                                    if (state.showAnswer == false)
+                                      {cubit.userAnswered(user)}
+                                  },
                                   child: SquareUserComponent(
-                                    hasUserAnswerd:
-                                        state.answeredUser?.id == user.id
-                                            ? state.hasUserAnswerd ?? false
-                                            : false,
+                                    hasUserAnswerd: state.showAnswer != null &&
+                                            state.showAnswer! &&
+                                            state.answeredUser?.id == user.id
+                                        ? state.hasUserAnswerd ?? false
+                                        : false,
                                     isCorrectAnswer:
                                         state.answeredUser?.id == user.id
                                             ? state.isCorrectAnswer ?? false
                                             : false,
                                     userName: user.displayName ?? '',
+                                    isSelected: state.hasUserAnswerd != null &&
+                                        state.hasUserAnswerd! &&
+                                        state.answeredUser?.id == user.id,
                                     userImageUrl:
                                         user.images?.firstOrNull?.url ?? '',
                                   ),

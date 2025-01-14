@@ -59,7 +59,6 @@ class GamePlayerCubit extends Cubit<GamePlayerState> {
       StreamController<int>.broadcast();
   final JoiningPeerSignaling joiningPeerSignaling =
       getIt.get<JoiningPeerSignaling>();
-  (User?, Track?)? question;
 
   Stream<int> get timerStream => timerStreamController.stream;
   User? me;
@@ -99,6 +98,7 @@ class GamePlayerCubit extends Cubit<GamePlayerState> {
         usersList.where((user) => user.id == selectedUserId).first;
     emit(GamePlayerState(usersList,
         currentTrack: song, currentUser: currentUser));
+    startTimer();
   }
 
   Future<void> firstRoundInitialization() async {
@@ -271,27 +271,18 @@ class GamePlayerCubit extends Cubit<GamePlayerState> {
   }
 
   void userAnswered(User choosenUser) {
-    // toDo wait for others to show correct answer
-    // if (question != null && timer!.isActive) {
-    //   if (question!.$1 == choosenUser) {
-    //     if (userIdToPoints!.containsKey(host!.id)) {
-    //       var hostStat = userIdToPoints![host!.id];
-    //       var user = hostStat!.$1;
-    //       var score = hostStat.$2;
-    //       score++;
-    //       userIdToPoints![host!.id!] = (user, score);
-    //       debugPrint(score.toString());
-    //     }
-    //     emit(state.copyWith(
-    //         isCorrectAnswer: true,
-    //         hasUserAnswerd: true,
-    //         answeredUser: choosenUser));
-    //   } else {
-    //     emit(state.copyWith(
-    //         isCorrectAnswer: false,
-    //         hasUserAnswerd: true,
-    //         answeredUser: choosenUser));
-    //   }
-    // }
+    if (state.currentUser != null && timer!.isActive) {
+      if (state.currentUser == choosenUser) {
+        emit(state.copyWith(
+            isCorrectAnswer: true,
+            hasUserAnswerd: true,
+            answeredUser: choosenUser));
+      } else {
+        emit(state.copyWith(
+            isCorrectAnswer: false,
+            hasUserAnswerd: true,
+            answeredUser: choosenUser));
+      }
+    }
   }
 }
