@@ -98,13 +98,11 @@ class GameLobbyCubit extends Cubit<GameLobbyState> {
     emit(state.copyWith(players: tempPlayers));
   }
 
-  Future<bool> startGameAsync() async {
+  Future<void> startGameAsync() async {
     final canVibrate = await Vibration.hasVibrator();
     if (canVibrate != null && canVibrate) {
       Vibration.vibrate();
     }
-    return await hostPeerSignaling
-        .sendMessageAsync(CommunicationProtocol.startGameMessage());
   }
 
   void dispose() {

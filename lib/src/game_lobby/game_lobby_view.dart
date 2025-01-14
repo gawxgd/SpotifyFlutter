@@ -5,7 +5,7 @@ import 'package:qr_flutter/qr_flutter.dart';
 import 'package:spotify_flutter/src/components/leaving_confirmation/leaving_confirmation_dialog.dart';
 import 'package:spotify_flutter/src/components/leaving_confirmation/leaving_confirmation_popscope.dart';
 import 'package:spotify_flutter/src/components/user_component.dart';
-import 'package:spotify_flutter/src/game/game_view.dart';
+import 'package:spotify_flutter/src/game_host/game_view.dart';
 import 'game_lobby_cubit.dart';
 
 class GameLobbyView extends StatelessWidget {
@@ -87,20 +87,10 @@ class GameLobbyView extends StatelessWidget {
                             const SizedBox(height: 8),
                             ElevatedButton(
                               onPressed: () async {
-                                final gameStarted =
-                                    await cubit.startGameAsync();
-                                if (!gameStarted) {
-                                  if (context.mounted) {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
-                                          content:
-                                              Text('Game failed to start')),
-                                    );
-                                  }
-                                } else {
-                                  if (context.mounted) {
-                                    context.go(GameView.routeName);
-                                  }
+                                await cubit.startGameAsync();
+
+                                if (context.mounted) {
+                                  context.go(GameHostView.routeName);
                                 }
                               },
                               style: ElevatedButton.styleFrom(

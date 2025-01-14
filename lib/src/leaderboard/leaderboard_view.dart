@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:spotify_flutter/src/components/leaving_confirmation/leaving_confirmation_popscope.dart';
-import 'package:spotify_flutter/src/game/game_view.dart';
+import 'package:spotify_flutter/src/game_host/game_view.dart';
 import 'package:spotify_flutter/src/leaderboard/leaderboard_cubit.dart';
 import 'package:spotify_flutter/src/components/user_component.dart';
 
@@ -74,7 +74,7 @@ class LeaderboardView extends StatelessWidget {
         ),
         floatingActionButton: FloatingActionButton.extended(
           onPressed: () {
-            context.go(GameView.routeName);
+            context.go(GameHostView.routeName);
           },
           icon: Icon(
             Icons.skip_next,

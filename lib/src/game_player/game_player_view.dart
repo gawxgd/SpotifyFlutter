@@ -5,23 +5,23 @@ import 'package:spotify_flutter/src/components/leaving_confirmation/leaving_conf
 import 'package:spotify_flutter/src/components/song_component.dart';
 import 'package:spotify_flutter/src/components/square_user_component.dart';
 import 'package:spotify_flutter/src/components/timer_widget.dart';
-import 'package:spotify_flutter/src/dependency_injection.dart';
-import 'package:spotify_flutter/src/game/game_cubit.dart';
+import 'package:spotify_flutter/src/game_host/game_cubit.dart';
+import 'package:spotify_flutter/src/game_player/game_player_cubit.dart';
 import 'package:spotify_flutter/src/leaderboard/leaderboard_view.dart';
 
-class GameView extends StatelessWidget {
-  static const routeName = '/game';
-  static const name = 'game';
+class GamePlayerView extends StatelessWidget {
+  static const routeName = '/game_player';
+  static const name = 'game_player';
 
-  const GameView({super.key});
+  const GamePlayerView({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider<GameCubit>(
-      create: (_) => GameCubit()..initialize(),
-      child: BlocBuilder<GameCubit, GameState>(
+    return BlocProvider<GamePlayerCubit>(
+      create: (_) => GamePlayerCubit()..initialize(),
+      child: BlocBuilder<GamePlayerCubit, GamePlayerState>(
         builder: (context, state) {
-          final cubit = context.read<GameCubit>();
+          final cubit = context.read<GamePlayerCubit>();
           final track = state.currentTrack;
 
           return LeavingConfirmationPopscope(
@@ -76,24 +76,6 @@ class GameView extends StatelessWidget {
                                 return TimerWidget(
                                     remainingTime: remainingTime);
                               },
-                            ),
-                            // Skip Button
-                            ElevatedButton(
-                              onPressed: () {
-                                cubit.skipQuestion();
-                                context.go(LeaderboardView.routeName);
-                              },
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor:
-                                    Theme.of(context).colorScheme.primary,
-                              ),
-                              child: Text(
-                                'Skip',
-                                style: TextStyle(
-                                  color:
-                                      Theme.of(context).colorScheme.onPrimary,
-                                ),
-                              ),
                             ),
                           ],
                         ),

@@ -124,6 +124,16 @@ class HostPeerSignaling extends PeerSignalingBase {
     return userList;
   }
 
+  Future<void> sendMessageToUser(String userId, String message) async {
+    if (userToDataConnectionMap.containsKey(userId)) {
+      final userDataChannel = userToDataConnectionMap[userId]?.$2;
+      if (userDataChannel != null && userDataChannel.open) {
+        await userDataChannel.send(message);
+        debugPrint("sent $message");
+      }
+    }
+  }
+
   @override
   void close() {
     for (var item in userToDataConnectionMap.values) {

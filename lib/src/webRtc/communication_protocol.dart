@@ -4,7 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:peerdart/peerdart.dart';
 import 'package:spotify/spotify.dart';
 import 'package:spotify_flutter/src/dependency_injection.dart';
-import 'package:spotify_flutter/src/game/game_cubit.dart';
+import 'package:spotify_flutter/src/game_host/game_cubit.dart';
+import 'package:spotify_flutter/src/game_player/game_player_cubit.dart';
 import 'package:spotify_flutter/src/webRtc/joinpeer.dart';
 
 class CommunicationProtocol {
@@ -13,11 +14,15 @@ class CommunicationProtocol {
   static const userSongsValue = "user_songs";
   static const requestUserSongsValue = "request_user_songs";
   static const endOfTheRoundValue = "end_of_round";
+  static const playerRoundInitializationRequestValue = "request_new_round_data";
+  static const hostRoundInitializationResponseValue = "answer_new_round_data";
 
   static const typeField = "type";
   static const userField = "user";
   static const userIdField = "user_id";
   static const songsListField = "song_list";
+  static const usersListField = "users_list";
+  static const songField = "song";
 
   static Map<String, dynamic> _decodeMessage(message) {
     return jsonDecode(message) as Map<String, dynamic>;
@@ -66,6 +71,28 @@ class CommunicationProtocol {
     return jsonEncode(message);
   }
 
+  static String playerRoundInitializationMessage(User user) {
+    final message = {
+      CommunicationProtocol.typeField:
+          CommunicationProtocol.playerRoundInitializationRequestValue,
+      CommunicationProtocol.userIdField: user.id,
+    };
+    return jsonEncode(message);
+  }
+
+  static String hostRoundInitializationMessage(
+      List<User> usersList, String currentUserId, Track song) {
+    final message = {
+      CommunicationProtocol.typeField:
+          CommunicationProtocol.hostRoundInitializationResponseValue,
+      CommunicationProtocol.usersListField:
+          usersList.map((user) => user.toJson()).toList(),
+      CommunicationProtocol.userIdField: currentUserId,
+      CommunicationProtocol.songField: song.toJson(),
+    };
+    return jsonEncode(message);
+  }
+
   static void onMessageReceivedHost(message, DataConnection connection,
       Function(User user, DataConnection connection) addPlayerCallback) {
     final decodedMessage = _decodeMessage(message);
@@ -82,6 +109,11 @@ class CommunicationProtocol {
           final songsList = decodedMessage[songsListField];
           final userId = decodedMessage[userIdField];
           _onSongListRecived(songsList, userId);
+        }
+      case playerRoundInitializationRequestValue:
+        {
+          final userId = decodedMessage[userIdField];
+          _onPlayerRoundInitializationRecived(userId);
         }
     }
   }
@@ -100,8 +132,14 @@ class CommunicationProtocol {
   static void _onSongListRecived(List<dynamic> songListJson, String userId) {
     List<Track> songList =
         songListJson.map((song) => Track.fromJson(song)).toList();
-    final gameCubit = getIt.get<GameCubit>();
-    gameCubit.loadUserSongs(songList, userId);
+    final gameCubit = getIt.get<GameHostCubit>();
+    gameCubit.loadUserSongsAsync(songList, userId);
+  }
+
+  static void _onPlayerRoundInitializationRecived(String userId) {
+    debugPrint('$userId request data for new round');
+    final gameCubit = getIt.get<GameHostCubit>();
+    gameCubit.onUserRequestedDataForNewRound(userId);
   }
 
   static void onMessageReceivedPlayer(message, VoidCallback callback) {
@@ -122,6 +160,14 @@ class CommunicationProtocol {
         {
           debugPrint("the round has ended");
         }
+      case hostRoundInitializationResponseValue:
+        {
+          final userList = decodedMessage[usersListField];
+          final song = decodedMessage[songField];
+          final selectedUserId = decodedMessage[userIdField];
+          debugPrint(message);
+          onHostRoundInitializationResponse(userList, song, selectedUserId);
+        }
     }
   }
 
@@ -137,5 +183,13 @@ class CommunicationProtocol {
     }
 
     await joiningPeerSignaling.sendMessageAsync(userSongsMessage(songs, user));
+  }
+
+  static void onHostRoundInitializationResponse(
+      List<dynamic> userList, dynamic song, String selectedUserId) async {
+    List<User> usersList = userList.map((user) => User.fromJson(user)).toList();
+    final gamePlayerCubit = getIt.get<GamePlayerCubit>();
+    gamePlayerCubit.loadRoundData(
+        usersList, Track.fromJson(song), selectedUserId);
   }
 }

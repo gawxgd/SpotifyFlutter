@@ -7,11 +7,11 @@ import 'package:spotify/spotify.dart';
 import 'package:spotify_flutter/src/components/game_settings.dart';
 import 'package:spotify_flutter/src/components/score.dart';
 import 'package:spotify_flutter/src/dependency_injection.dart';
-import 'package:spotify_flutter/src/game/round_config.dart';
+import 'package:spotify_flutter/src/game_host/round_config.dart';
 import 'package:spotify_flutter/src/webRtc/communication_protocol.dart';
 import 'package:spotify_flutter/src/webRtc/hostpeer.dart';
 
-class GameState {
+class GameHostState {
   final List<User> users;
   final String? snackbarMessage;
   final Map<String, List<Track>> userIdToSongs;
@@ -23,7 +23,7 @@ class GameState {
   final User? answeredUser;
   final int? roundNumber;
 
-  GameState(
+  GameHostState(
     this.users, {
     this.snackbarMessage,
     Map<String, List<Track>>? userIdToSongs,
@@ -36,7 +36,7 @@ class GameState {
     this.roundNumber,
   }) : userIdToSongs = userIdToSongs ?? {};
 
-  GameState copyWith({
+  GameHostState copyWith({
     List<User>? users,
     String? snackbarMessage,
     Map<String, List<Track>>? userIdToSongs,
@@ -48,7 +48,7 @@ class GameState {
     User? answeredUser,
     int? roundNumber,
   }) {
-    return GameState(
+    return GameHostState(
       users ?? this.users,
       snackbarMessage: snackbarMessage ?? this.snackbarMessage,
       userIdToSongs: userIdToSongs ?? this.userIdToSongs,
@@ -63,7 +63,7 @@ class GameState {
   }
 }
 
-class GameCubit extends Cubit<GameState> {
+class GameHostCubit extends Cubit<GameHostState> {
   static int defaultTime = 30;
   Timer? timer;
   final StreamController<int> timerStreamController =
@@ -75,19 +75,19 @@ class GameCubit extends Cubit<GameState> {
   Map<String, (User, int)>? userIdToPoints;
   User? host;
 
-  GameCubit() : super(GameState([], snackbarMessage: null)) {
-    if (getIt.isRegistered<GameCubit>()) {
-      getIt.unregister<GameCubit>();
+  GameHostCubit() : super(GameHostState([], snackbarMessage: null)) {
+    if (getIt.isRegistered<GameHostCubit>()) {
+      getIt.unregister<GameHostCubit>();
     }
-    getIt.registerLazySingleton<GameCubit>(() => this);
+    getIt.registerLazySingleton<GameHostCubit>(() => this);
   }
 
   Future<void> leave() {
     timerStreamController.close();
     timer?.cancel();
     hostPeerSignaling.close();
-    if (getIt.isRegistered<GameCubit>()) {
-      getIt.unregister<GameCubit>();
+    if (getIt.isRegistered<GameHostCubit>()) {
+      getIt.unregister<GameHostCubit>();
     }
     return super.close();
   }
@@ -117,7 +117,7 @@ class GameCubit extends Cubit<GameState> {
 
   Future<void> nextRoundInitialization() async {
     final roundConfig = getIt.get<RoundConfig>();
-    emit(GameState(roundConfig.users,
+    emit(GameHostState(roundConfig.users,
         userIdToSongs: roundConfig.userIdToSongs,
         roundNumber: roundConfig.roundNumber));
     question = getQuestion();
@@ -127,7 +127,6 @@ class GameCubit extends Cubit<GameState> {
     final me = await spotifyApi.me.get();
     host = me;
     getIt.unregister<RoundConfig>();
-    startTimer();
   }
 
   Future<void> loadUsers() async {
@@ -138,10 +137,10 @@ class GameCubit extends Cubit<GameState> {
     host = me;
 
     if (userList.isNotEmpty) {
-      emit(GameState(userList));
+      emit(GameHostState(userList));
       debugPrint("usersLoaded");
     } else {
-      emit(GameState([], snackbarMessage: 'No users found.'));
+      emit(GameHostState([], snackbarMessage: 'No users found.'));
     }
   }
 
@@ -158,7 +157,7 @@ class GameCubit extends Cubit<GameState> {
         updatedUserIdToSongs[me.id!] = songs.items!.take(10).toList();
         debugPrint("added myself");
         emit(
-          GameState(state.users, userIdToSongs: updatedUserIdToSongs),
+          GameHostState(state.users, userIdToSongs: updatedUserIdToSongs),
         );
       }
     }
@@ -166,28 +165,30 @@ class GameCubit extends Cubit<GameState> {
         .sendMessageAsync(CommunicationProtocol.requestUserSongsMessage());
   }
 
-  void loadUserSongs(List<Track> songs, String userId) {
+  Future<void> loadUserSongsAsync(List<Track> songs, String userId) async {
     final updatedUserIdToSongs =
         Map<String, List<Track>>.from(state.userIdToSongs);
 
     updatedUserIdToSongs[userId] = songs;
 
-    emit(GameState(state.users, userIdToSongs: updatedUserIdToSongs));
+    emit(GameHostState(state.users, userIdToSongs: updatedUserIdToSongs));
     debugPrint(
         updatedUserIdToSongs.length.toString() + state.users.length.toString());
 
     if (updatedUserIdToSongs.length == state.users.length) {
       question = getQuestion();
 
-      emit(GameState(state.users,
+      emit(GameHostState(state.users,
           userIdToSongs: updatedUserIdToSongs,
           currentUser: question!.$1,
           currentTrack: question!.$2,
           remainingTime: defaultTime));
 
-      startTimer();
       debugPrint(
           'Selected Question: User: ${question!.$1?.displayName}, Track: ${question!.$2?.name}');
+      await hostPeerSignaling
+          .sendMessageAsync(CommunicationProtocol.startGameMessage());
+      startTimer();
     }
   }
 
@@ -226,6 +227,9 @@ class GameCubit extends Cubit<GameState> {
 
   Future<void> skipQuestion() async {
     // toDo send to others that the round has ended
+    // they display answeres
+    // on second click send users that they should show leaderboard
+    // show leaderboard
     final scoreList = makeScoreList();
     final score = Score(usersScore: scoreList);
     if (getIt.isRegistered<Score>()) {
@@ -234,7 +238,11 @@ class GameCubit extends Cubit<GameState> {
     getIt.registerSingleton(score);
 
     if (state.roundNumber != null) {
-      emit(state.copyWith(roundNumber: state.roundNumber! - 1));
+      if (state.roundNumber! - 1 >= 0) {
+        emit(state.copyWith(roundNumber: state.roundNumber! - 1));
+      } else {
+        // show the game end
+      }
     }
     final roundConfig = RoundConfig(
         users: state.users,
@@ -263,7 +271,7 @@ class GameCubit extends Cubit<GameState> {
 
   void userAnswered(User choosenUser) {
     // toDo wait for others to show correct answer
-    if (question != null && timer!.isActive) {
+    if (question != null && timer != null && timer!.isActive) {
       if (question!.$1 == choosenUser) {
         if (userIdToPoints!.containsKey(host!.id)) {
           var hostStat = userIdToPoints![host!.id];
@@ -283,6 +291,17 @@ class GameCubit extends Cubit<GameState> {
             hasUserAnswerd: true,
             answeredUser: choosenUser));
       }
+    }
+  }
+
+  void onUserRequestedDataForNewRound(String userId) {
+    if (state.users.isNotEmpty &&
+        state.currentUser != null &&
+        state.currentTrack != null) {
+      hostPeerSignaling.sendMessageToUser(
+          userId,
+          CommunicationProtocol.hostRoundInitializationMessage(
+              state.users, state.currentUser!.id!, state.currentTrack!));
     }
   }
 }
