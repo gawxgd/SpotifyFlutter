@@ -23,6 +23,9 @@ class GamePlayerView extends StatelessWidget {
         builder: (context, state) {
           final cubit = context.read<GamePlayerCubit>();
           final track = state.currentTrack;
+          if (state.endOfRound == true) {
+            context.go(LeaderboardView.routeName);
+          }
 
           return LeavingConfirmationPopscope(
             onDispose: cubit.leave,
@@ -69,10 +72,7 @@ class GamePlayerView extends StatelessWidget {
                               stream: cubit.timerStream,
                               builder: (context, snapshot) {
                                 final remainingTime = snapshot.data ?? 30;
-                                if (remainingTime == 0) {
-                                  cubit.skipQuestion();
-                                  context.go(LeaderboardView.routeName);
-                                }
+
                                 return TimerWidget(
                                     remainingTime: remainingTime);
                               },
@@ -101,17 +101,24 @@ class GamePlayerView extends StatelessWidget {
                                 final user = state.users[index];
 
                                 return InkWell(
-                                  onTap: () => cubit.userAnswered(user),
+                                  onTap: () => {
+                                    if (state.showAnswer == false)
+                                      {cubit.userAnswered(user)}
+                                  },
                                   child: SquareUserComponent(
-                                    hasUserAnswerd:
-                                        state.answeredUser?.id == user.id
-                                            ? state.hasUserAnswerd ?? false
-                                            : false,
+                                    hasUserAnswerd: state.showAnswer != null &&
+                                            state.showAnswer! &&
+                                            state.answeredUser?.id == user.id
+                                        ? state.hasUserAnswerd ?? false
+                                        : false,
                                     isCorrectAnswer:
                                         state.answeredUser?.id == user.id
                                             ? state.isCorrectAnswer ?? false
                                             : false,
                                     userName: user.displayName ?? '',
+                                    isSelected: state.hasUserAnswerd != null &&
+                                        state.hasUserAnswerd! &&
+                                        state.answeredUser?.id == user.id,
                                     userImageUrl:
                                         user.images?.firstOrNull?.url ?? '',
                                   ),

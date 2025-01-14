@@ -16,6 +16,8 @@ class CommunicationProtocol {
   static const endOfTheRoundValue = "end_of_round";
   static const playerRoundInitializationRequestValue = "request_new_round_data";
   static const hostRoundInitializationResponseValue = "answer_new_round_data";
+  static const showAnswerValue = "show_answer";
+  static const myScoreValue = "player_score";
 
   static const typeField = "type";
   static const userField = "user";
@@ -23,6 +25,8 @@ class CommunicationProtocol {
   static const songsListField = "song_list";
   static const usersListField = "users_list";
   static const songField = "song";
+  static const roundTimeField = "round_time";
+  static const scoreField = "score";
 
   static Map<String, dynamic> _decodeMessage(message) {
     return jsonDecode(message) as Map<String, dynamic>;
@@ -81,7 +85,7 @@ class CommunicationProtocol {
   }
 
   static String hostRoundInitializationMessage(
-      List<User> usersList, String currentUserId, Track song) {
+      List<User> usersList, String currentUserId, Track song, int roundTime) {
     final message = {
       CommunicationProtocol.typeField:
           CommunicationProtocol.hostRoundInitializationResponseValue,
@@ -89,6 +93,23 @@ class CommunicationProtocol {
           usersList.map((user) => user.toJson()).toList(),
       CommunicationProtocol.userIdField: currentUserId,
       CommunicationProtocol.songField: song.toJson(),
+      CommunicationProtocol.roundTimeField: roundTime,
+    };
+    return jsonEncode(message);
+  }
+
+  static String showAnswerMessage() {
+    final message = {
+      CommunicationProtocol.typeField: CommunicationProtocol.showAnswerValue,
+    };
+    return jsonEncode(message);
+  }
+
+  static String playerScoreMessage(User user, int score) {
+    final message = {
+      CommunicationProtocol.typeField: CommunicationProtocol.myScoreValue,
+      CommunicationProtocol.scoreField: score,
+      CommunicationProtocol.userIdField: user.id,
     };
     return jsonEncode(message);
   }
@@ -114,6 +135,12 @@ class CommunicationProtocol {
         {
           final userId = decodedMessage[userIdField];
           _onPlayerRoundInitializationRecived(userId);
+        }
+      case myScoreValue:
+        {
+          final userId = decodedMessage[userIdField];
+          final score = decodedMessage[scoreField];
+          _onHostRecivedScoreFromPlayer(userId, score);
         }
     }
   }
@@ -142,6 +169,11 @@ class CommunicationProtocol {
     gameCubit.onUserRequestedDataForNewRound(userId);
   }
 
+  static void _onHostRecivedScoreFromPlayer(String userId, int score) {
+    final gameCubit = getIt.get<GameHostCubit>();
+    gameCubit.onHostRecivedScoreFromPlayer(userId, score);
+  }
+
   static void onMessageReceivedPlayer(message, VoidCallback callback) {
     final decodedMessage = _decodeMessage(message);
     final type = decodedMessage[typeField];
@@ -158,15 +190,21 @@ class CommunicationProtocol {
         }
       case endOfTheRoundValue:
         {
-          debugPrint("the round has ended");
+          onPlayerEndOfTheRound();
         }
       case hostRoundInitializationResponseValue:
         {
           final userList = decodedMessage[usersListField];
           final song = decodedMessage[songField];
           final selectedUserId = decodedMessage[userIdField];
+          final roundTime = decodedMessage[roundTimeField];
           debugPrint(message);
-          onHostRoundInitializationResponse(userList, song, selectedUserId);
+          onHostRoundInitializationResponse(
+              userList, song, selectedUserId, roundTime);
+        }
+      case showAnswerValue:
+        {
+          onPlayerShowAnswer();
         }
     }
   }
@@ -185,11 +223,21 @@ class CommunicationProtocol {
     await joiningPeerSignaling.sendMessageAsync(userSongsMessage(songs, user));
   }
 
-  static void onHostRoundInitializationResponse(
-      List<dynamic> userList, dynamic song, String selectedUserId) async {
+  static void onHostRoundInitializationResponse(List<dynamic> userList,
+      dynamic song, String selectedUserId, int roundTime) async {
     List<User> usersList = userList.map((user) => User.fromJson(user)).toList();
     final gamePlayerCubit = getIt.get<GamePlayerCubit>();
     gamePlayerCubit.loadRoundData(
-        usersList, Track.fromJson(song), selectedUserId);
+        usersList, Track.fromJson(song), selectedUserId, roundTime);
+  }
+
+  static void onPlayerShowAnswer() {
+    final gamePlayerCubit = getIt.get<GamePlayerCubit>();
+    gamePlayerCubit.showAnswerAsync();
+  }
+
+  static void onPlayerEndOfTheRound() {
+    final gamePlayerCubit = getIt.get<GamePlayerCubit>();
+    gamePlayerCubit.onPlayerEndOfTheRound();
   }
 }

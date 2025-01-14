@@ -68,10 +68,7 @@ class GameHostView extends StatelessWidget {
                               stream: cubit.timerStream,
                               builder: (context, snapshot) {
                                 final remainingTime = snapshot.data ?? 30;
-                                if (remainingTime == 0) {
-                                  cubit.skipQuestion();
-                                  context.go(LeaderboardView.routeName);
-                                }
+
                                 return TimerWidget(
                                     remainingTime: remainingTime);
                               },
@@ -96,8 +93,8 @@ class GameHostView extends StatelessWidget {
                                     ),
                                   )
                                 : ElevatedButton(
-                                    onPressed: () {
-                                      cubit.showAnswer();
+                                    onPressed: () async {
+                                      await cubit.showAnswerAsync();
                                     },
                                     style: ElevatedButton.styleFrom(
                                         backgroundColor: Theme.of(context)

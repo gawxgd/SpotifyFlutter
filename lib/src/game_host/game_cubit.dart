@@ -78,6 +78,8 @@ class GameHostCubit extends Cubit<GameHostState> {
   Stream<int> get timerStream => timerStreamController.stream;
   Map<String, (User, int)>? userIdToPoints;
   User? host;
+  bool canSkipQuestion = false;
+  List<String> scoreRecivedFromUsers = [];
 
   GameHostCubit() : super(GameHostState([], snackbarMessage: null)) {
     if (getIt.isRegistered<GameHostCubit>()) {
@@ -222,6 +224,7 @@ class GameHostCubit extends Cubit<GameHostState> {
     timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (remainingTime == 0) {
         timer.cancel();
+        showAnswerAsync();
       } else {
         remainingTime--;
         timerStreamController.add(remainingTime);
@@ -234,6 +237,10 @@ class GameHostCubit extends Cubit<GameHostState> {
     // they display answeres
     // on second click send users that they should show leaderboard
     // show leaderboard
+    if (!canSkipQuestion) {
+      return;
+    }
+
     final scoreList = makeScoreList();
     final score = Score(usersScore: scoreList);
     if (getIt.isRegistered<Score>()) {
@@ -283,6 +290,7 @@ class GameHostCubit extends Cubit<GameHostState> {
           var score = hostStat.$2;
           score++;
           userIdToPoints![host!.id!] = (user, score);
+          scoreRecivedFromUsers.add(user.id!);
           debugPrint(score.toString());
         }
         emit(state.copyWith(
@@ -304,12 +312,29 @@ class GameHostCubit extends Cubit<GameHostState> {
         state.currentTrack != null) {
       hostPeerSignaling.sendMessageToUser(
           userId,
-          CommunicationProtocol.hostRoundInitializationMessage(
-              state.users, state.currentUser!.id!, state.currentTrack!));
+          CommunicationProtocol.hostRoundInitializationMessage(state.users,
+              state.currentUser!.id!, state.currentTrack!, defaultTime));
     }
   }
 
-  void showAnswer() {
+  Future<void> showAnswerAsync() async {
+    timer?.cancel();
     emit(state.copyWith(showAnswer: true));
+    await hostPeerSignaling
+        .sendMessageAsync(CommunicationProtocol.showAnswerMessage());
+  }
+
+  void onHostRecivedScoreFromPlayer(String userId, int score) {
+    if (userIdToPoints!.containsKey(userId)) {
+      var playerStat = userIdToPoints![userId];
+      var user = playerStat!.$1;
+      var score = playerStat.$2;
+      score++;
+      userIdToPoints![userId] = (user, score);
+      scoreRecivedFromUsers.add(userId);
+      if (scoreRecivedFromUsers.length == state.users.length) {
+        canSkipQuestion = true;
+      }
+    }
   }
 }
