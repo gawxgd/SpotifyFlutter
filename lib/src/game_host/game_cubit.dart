@@ -23,6 +23,9 @@ class GameHostState {
   final User? answeredUser;
   final int? roundNumber;
   final bool? showAnswer;
+  final bool? endOfGame;
+  final bool? canSkipQuestion;
+  final bool? isGameLoaded;
 
   GameHostState(
     this.users, {
@@ -36,6 +39,9 @@ class GameHostState {
     this.answeredUser,
     this.roundNumber,
     this.showAnswer = false,
+    this.endOfGame = false,
+    this.canSkipQuestion = true,
+    this.isGameLoaded = false,
   }) : userIdToSongs = userIdToSongs ?? {};
 
   GameHostState copyWith({
@@ -50,6 +56,9 @@ class GameHostState {
     User? answeredUser,
     int? roundNumber,
     bool? showAnswer,
+    bool? endOfGame,
+    bool? canSkipQuestion,
+    bool? isGameLoaded,
   }) {
     return GameHostState(
       users ?? this.users,
@@ -63,6 +72,9 @@ class GameHostState {
       answeredUser: answeredUser ?? this.answeredUser,
       roundNumber: roundNumber ?? this.roundNumber,
       showAnswer: showAnswer ?? this.showAnswer,
+      endOfGame: endOfGame ?? this.endOfGame,
+      canSkipQuestion: canSkipQuestion ?? this.canSkipQuestion,
+      isGameLoaded: isGameLoaded ?? this.isGameLoaded,
     );
   }
 }
@@ -101,6 +113,11 @@ class GameHostCubit extends Cubit<GameHostState> {
   void initialize() async {
     if (getIt.isRegistered<RoundConfig>()) {
       await nextRoundInitialization();
+      // send start next round message the other players should just navigate to gameplayer view and do the same
+      await hostPeerSignaling
+          .sendMessageAsync(CommunicationProtocol.hostStartNewRoundMessage());
+      emit(state.copyWith(isGameLoaded: true));
+      startTimer();
     } else {
       await firstRoundInitialization();
     }
@@ -111,6 +128,8 @@ class GameHostCubit extends Cubit<GameHostState> {
       final gameSettings = getIt.get<GameSettings>();
       defaultTime = gameSettings.questionTime;
       emit(state.copyWith(roundNumber: gameSettings.rounds));
+      debugPrint("there is ${gameSettings.rounds}");
+      debugPrint("there is gowno ${state.roundNumber}");
     }
     userIdToPoints = {};
     await loadUsers();
@@ -126,6 +145,9 @@ class GameHostCubit extends Cubit<GameHostState> {
     emit(GameHostState(roundConfig.users,
         userIdToSongs: roundConfig.userIdToSongs,
         roundNumber: roundConfig.roundNumber));
+    debugPrint("there is now ${state.roundNumber}");
+    debugPrint("there is now ${roundConfig.roundNumber}");
+
     question = getQuestion();
     emit(state.copyWith(currentTrack: question!.$2, currentUser: question!.$1));
     userIdToPoints = roundConfig.userIdToPoints;
@@ -143,7 +165,7 @@ class GameHostCubit extends Cubit<GameHostState> {
     host = me;
 
     if (userList.isNotEmpty) {
-      emit(GameHostState(userList));
+      emit(state.copyWith(users: userList));
       debugPrint("usersLoaded");
     } else {
       emit(GameHostState([], snackbarMessage: 'No users found.'));
@@ -163,7 +185,7 @@ class GameHostCubit extends Cubit<GameHostState> {
         updatedUserIdToSongs[me.id!] = songs.items!.take(10).toList();
         debugPrint("added myself");
         emit(
-          GameHostState(state.users, userIdToSongs: updatedUserIdToSongs),
+          state.copyWith(userIdToSongs: updatedUserIdToSongs),
         );
       }
     }
@@ -177,14 +199,14 @@ class GameHostCubit extends Cubit<GameHostState> {
 
     updatedUserIdToSongs[userId] = songs;
 
-    emit(GameHostState(state.users, userIdToSongs: updatedUserIdToSongs));
+    emit(state.copyWith(userIdToSongs: updatedUserIdToSongs));
     debugPrint(
         updatedUserIdToSongs.length.toString() + state.users.length.toString());
 
     if (updatedUserIdToSongs.length == state.users.length) {
       question = getQuestion();
 
-      emit(GameHostState(state.users,
+      emit(state.copyWith(
           userIdToSongs: updatedUserIdToSongs,
           currentUser: question!.$1,
           currentTrack: question!.$2,
@@ -194,6 +216,7 @@ class GameHostCubit extends Cubit<GameHostState> {
           'Selected Question: User: ${question!.$1?.displayName}, Track: ${question!.$2?.name}');
       await hostPeerSignaling
           .sendMessageAsync(CommunicationProtocol.startGameMessage());
+      emit(state.copyWith(isGameLoaded: true));
       startTimer();
     }
   }
@@ -233,14 +256,6 @@ class GameHostCubit extends Cubit<GameHostState> {
   }
 
   Future<void> skipQuestion() async {
-    // toDo send to others that the round has ended
-    // they display answeres
-    // on second click send users that they should show leaderboard
-    // show leaderboard
-    if (!canSkipQuestion) {
-      return;
-    }
-
     final scoreList = makeScoreList();
     final score = Score(usersScore: scoreList);
     if (getIt.isRegistered<Score>()) {
@@ -249,10 +264,17 @@ class GameHostCubit extends Cubit<GameHostState> {
     getIt.registerSingleton(score);
 
     if (state.roundNumber != null) {
+      debugPrint("round number ${state.roundNumber}");
       if (state.roundNumber! - 1 >= 0) {
         emit(state.copyWith(roundNumber: state.roundNumber! - 1));
       } else {
-        // show the game end
+        await hostPeerSignaling
+            .sendMessageAsync(CommunicationProtocol.hostEndOfGameMessage());
+        hostPeerSignaling.close();
+        timerStreamController.close();
+        timer?.cancel();
+        emit(state.copyWith(endOfGame: true));
+        return;
       }
     }
     final roundConfig = RoundConfig(
@@ -261,6 +283,7 @@ class GameHostCubit extends Cubit<GameHostState> {
         roundNumber: state.roundNumber,
         userIdToSongs: state.userIdToSongs);
     getIt.registerSingleton(roundConfig);
+    debugPrint("new round with ${state.roundNumber}");
 
     await hostPeerSignaling
         .sendMessageAsync(CommunicationProtocol.endOfTheRoundMessage());
@@ -282,6 +305,8 @@ class GameHostCubit extends Cubit<GameHostState> {
 
   void userAnswered(User choosenUser) {
     // toDo wait for others to show correct answer
+    scoreRecivedFromUsers.add(host!.id!);
+
     if (question != null && timer != null && timer!.isActive) {
       if (question!.$1 == choosenUser) {
         if (userIdToPoints!.containsKey(host!.id)) {
@@ -290,7 +315,9 @@ class GameHostCubit extends Cubit<GameHostState> {
           var score = hostStat.$2;
           score++;
           userIdToPoints![host!.id!] = (user, score);
-          scoreRecivedFromUsers.add(user.id!);
+          for (var item in scoreRecivedFromUsers) {
+            debugPrint("user1 + $item");
+          }
           debugPrint(score.toString());
         }
         emit(state.copyWith(
@@ -328,13 +355,21 @@ class GameHostCubit extends Cubit<GameHostState> {
     if (userIdToPoints!.containsKey(userId)) {
       var playerStat = userIdToPoints![userId];
       var user = playerStat!.$1;
-      var score = playerStat.$2;
-      score++;
-      userIdToPoints![userId] = (user, score);
+      var userScore = playerStat.$2;
+      userScore += score;
+      userIdToPoints![userId] = (user, userScore);
       scoreRecivedFromUsers.add(userId);
-      if (scoreRecivedFromUsers.length == state.users.length) {
-        canSkipQuestion = true;
+      for (var item in scoreRecivedFromUsers) {
+        debugPrint("user1 + $item");
       }
+      debugPrint("${scoreRecivedFromUsers.length} + ${state.users.length}");
+      // if (scoreRecivedFromUsers.length >= state.users.length) {
+      //   canSkipQuestion = true;
+      //   emit(state.copyWith(canSkipQuestion: true));
+      //   debugPrint("you can skip question");
+      // }
+      canSkipQuestion = true;
+      emit(state.copyWith(canSkipQuestion: true));
     }
   }
 }

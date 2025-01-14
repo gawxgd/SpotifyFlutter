@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:spotify/spotify.dart';
 import 'package:spotify_flutter/src/dependency_injection.dart';
@@ -16,7 +17,8 @@ class GamePlayerState {
   final User? answeredUser;
   final bool? showAnswer;
   final bool? endOfRound;
-
+  final bool? endOfGame;
+  final bool? isGameLoaded;
   GamePlayerState(
     this.users, {
     this.snackbarMessage,
@@ -27,6 +29,8 @@ class GamePlayerState {
     this.answeredUser,
     this.showAnswer = false,
     this.endOfRound = false,
+    this.endOfGame = false,
+    this.isGameLoaded = false,
   });
 
   GamePlayerState copyWith({
@@ -39,6 +43,8 @@ class GamePlayerState {
     User? answeredUser,
     bool? showAnswer,
     bool? endOfRound,
+    bool? endOfGame,
+    bool? isGameLoaded,
   }) {
     return GamePlayerState(
       users ?? this.users,
@@ -50,6 +56,8 @@ class GamePlayerState {
       answeredUser: answeredUser ?? this.answeredUser,
       showAnswer: showAnswer ?? this.showAnswer,
       endOfRound: endOfRound ?? this.endOfRound,
+      endOfGame: endOfGame ?? this.endOfGame,
+      isGameLoaded: isGameLoaded ?? this.isGameLoaded,
     );
   }
 }
@@ -94,6 +102,7 @@ class GamePlayerCubit extends Cubit<GamePlayerState> {
     emit(GamePlayerState(usersList,
         currentTrack: song, currentUser: currentUser));
     defaultTime = roundTime;
+    emit(state.copyWith(isGameLoaded: true));
     startTimer();
   }
 
@@ -145,5 +154,12 @@ class GamePlayerCubit extends Cubit<GamePlayerState> {
       await joiningPeerSignaling.sendMessageAsync(
           CommunicationProtocol.playerScoreMessage(me!, score));
     }
+  }
+
+  void onPlayerEndOfGame() {
+    //joiningPeerSignaling.close();
+    //timer?.cancel();
+    debugPrint("end of game");
+    emit(state.copyWith(endOfGame: true));
   }
 }

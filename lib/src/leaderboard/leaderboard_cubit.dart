@@ -10,8 +10,10 @@ import 'package:spotify_flutter/src/webRtc/joinpeer.dart';
 class LeaderboardState {
   final List<MapEntry<User, int>> usersScore;
   final bool? isHost;
+  final bool? isNewRound;
 
-  const LeaderboardState({this.usersScore = const [], this.isHost});
+  const LeaderboardState(
+      {this.usersScore = const [], this.isHost, this.isNewRound});
 }
 
 class LeaderboardCubit extends Cubit<LeaderboardState> {
@@ -61,6 +63,15 @@ class LeaderboardCubit extends Cubit<LeaderboardState> {
         state.isHost != null &&
         state.isHost == false) {
       getIt.get<JoiningPeerSignaling>().close();
+    }
+  }
+
+  void onPlayerRecivedNewRound() {
+    if (state.isHost != null && state.isHost == false) {
+      emit(LeaderboardState(
+          usersScore: state.usersScore,
+          isHost: state.isHost,
+          isNewRound: true));
     }
   }
 }

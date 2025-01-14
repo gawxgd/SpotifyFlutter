@@ -7,6 +7,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:go_router/go_router.dart';
 import 'package:spotify_flutter/src/authorization/authorization_controller.dart';
 import 'package:spotify_flutter/src/authorization/authorization_view.dart';
+import 'package:spotify_flutter/src/end_of_game/end_of_game_view.dart';
 import 'package:spotify_flutter/src/game_host/game_view.dart';
 import 'package:spotify_flutter/src/game_lobby/game_lobby_view.dart';
 import 'package:spotify_flutter/src/game_player/game_player_view.dart';
@@ -125,6 +126,9 @@ class _MyAppState extends State<MyApp> {
           path: GamePlayerView.routeName,
           builder: (context, state) => const GamePlayerView(),
         ),
+        GoRoute(
+            path: EndOfGameView.routeName,
+            builder: (context, state) => const EndOfGameView()),
       ],
       redirect: (context, state) async {
         final isAuthenticated =

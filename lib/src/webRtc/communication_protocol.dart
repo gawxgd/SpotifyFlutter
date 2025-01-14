@@ -23,6 +23,8 @@ class CommunicationProtocol {
   static const myScoreValue = "player_score";
   static const playerRequestScoreValue = "get_other_players_score";
   static const hostAnswerScoreValue = "answer_other_players_score";
+  static const hostStartNewRoundValue = "start_new_round";
+  static const hostEndOfGameValue = "end_of_game";
 
   static const typeField = "type";
   static const userField = "user";
@@ -142,6 +144,20 @@ class CommunicationProtocol {
     return jsonEncode(message);
   }
 
+  static String hostStartNewRoundMessage() {
+    final message = {
+      CommunicationProtocol.typeField: hostStartNewRoundValue,
+    };
+    return jsonEncode(message);
+  }
+
+  static String hostEndOfGameMessage() {
+    final message = {
+      CommunicationProtocol.typeField: hostEndOfGameValue,
+    };
+    return jsonEncode(message);
+  }
+
   static void onMessageReceivedHost(message, DataConnection connection,
       Function(User user, DataConnection connection) addPlayerCallback) {
     final decodedMessage = _decodeMessage(message);
@@ -253,6 +269,14 @@ class CommunicationProtocol {
           final usersScore = decodedMessage[scoreListField];
           onPlayerRecivedScoreFromOtherPlayers(usersScore);
         }
+      case hostStartNewRoundValue:
+        {
+          onPlayerRecivedNewRound();
+        }
+      case hostEndOfGameValue:
+        {
+          onPlayerRecivedEndOfGame();
+        }
     }
   }
 
@@ -298,5 +322,15 @@ class CommunicationProtocol {
     }).toList();
     final leaderboardCubit = getIt.get<LeaderboardCubit>();
     leaderboardCubit.onRecivedScoreFromOtherPlayersAsync(usersScoreList);
+  }
+
+  static void onPlayerRecivedNewRound() {
+    final leaderboardCubit = getIt.get<LeaderboardCubit>();
+    leaderboardCubit.onPlayerRecivedNewRound();
+  }
+
+  static void onPlayerRecivedEndOfGame() {
+    final gamePlayerCubit = getIt.get<GamePlayerCubit>();
+    gamePlayerCubit.onPlayerEndOfGame();
   }
 }

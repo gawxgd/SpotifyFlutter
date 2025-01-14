@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:spotify_flutter/src/components/leaving_confirmation/leaving_confirmation_popscope.dart';
 import 'package:spotify_flutter/src/game_host/game_view.dart';
+import 'package:spotify_flutter/src/game_player/game_player_view.dart';
 import 'package:spotify_flutter/src/leaderboard/leaderboard_cubit.dart';
 import 'package:spotify_flutter/src/components/user_component.dart';
 
@@ -23,7 +24,9 @@ class LeaderboardView extends StatelessWidget {
             child: BlocBuilder<LeaderboardCubit, LeaderboardState>(
               builder: (context, state) {
                 final usersScore = state.usersScore;
-
+                if (state.isNewRound == true && isHost == false) {
+                  context.go(GamePlayerView.routeName);
+                }
                 if (usersScore.isEmpty) {
                   return LeavingConfirmationPopscope(
                     onDispose: context.read<LeaderboardCubit>().leave,
