@@ -116,7 +116,10 @@ class _MyAppState extends State<MyApp> {
         GoRoute(
             path: LeaderboardView.routeName,
             builder: (context, state) {
-              return const LeaderboardView();
+              final isHost = state.extra as bool? ?? false;
+              return LeaderboardView(
+                isHost: isHost,
+              );
             }),
         GoRoute(
           path: GamePlayerView.routeName,

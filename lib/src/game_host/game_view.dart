@@ -77,7 +77,8 @@ class GameHostView extends StatelessWidget {
                                 ? ElevatedButton(
                                     onPressed: () {
                                       cubit.skipQuestion();
-                                      context.go(LeaderboardView.routeName);
+                                      context.go(LeaderboardView.routeName,
+                                          extra: true);
                                     },
                                     style: ElevatedButton.styleFrom(
                                       backgroundColor:

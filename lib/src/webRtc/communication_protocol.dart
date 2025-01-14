@@ -3,9 +3,12 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:peerdart/peerdart.dart';
 import 'package:spotify/spotify.dart';
+import 'package:spotify_flutter/src/components/score.dart';
 import 'package:spotify_flutter/src/dependency_injection.dart';
 import 'package:spotify_flutter/src/game_host/game_cubit.dart';
 import 'package:spotify_flutter/src/game_player/game_player_cubit.dart';
+import 'package:spotify_flutter/src/leaderboard/leaderboard_cubit.dart';
+import 'package:spotify_flutter/src/webRtc/hostpeer.dart';
 import 'package:spotify_flutter/src/webRtc/joinpeer.dart';
 
 class CommunicationProtocol {
@@ -18,6 +21,8 @@ class CommunicationProtocol {
   static const hostRoundInitializationResponseValue = "answer_new_round_data";
   static const showAnswerValue = "show_answer";
   static const myScoreValue = "player_score";
+  static const playerRequestScoreValue = "get_other_players_score";
+  static const hostAnswerScoreValue = "answer_other_players_score";
 
   static const typeField = "type";
   static const userField = "user";
@@ -27,6 +32,7 @@ class CommunicationProtocol {
   static const songField = "song";
   static const roundTimeField = "round_time";
   static const scoreField = "score";
+  static const scoreListField = "score_list";
 
   static Map<String, dynamic> _decodeMessage(message) {
     return jsonDecode(message) as Map<String, dynamic>;
@@ -114,6 +120,28 @@ class CommunicationProtocol {
     return jsonEncode(message);
   }
 
+  static String playerRequestScoreFromOtherPlayersMessage(String userId) {
+    final message = {
+      CommunicationProtocol.typeField: playerRequestScoreValue,
+      CommunicationProtocol.userIdField: userId,
+    };
+    return jsonEncode(message);
+  }
+
+  static String hostAnswerOtherPlayersScoreMessage(
+      List<MapEntry<User, int>> usersScore) {
+    final message = {
+      CommunicationProtocol.typeField: hostAnswerScoreValue,
+      CommunicationProtocol.scoreListField: usersScore.map((entry) {
+        return {
+          userField: entry.key.toJson(),
+          scoreField: entry.value,
+        };
+      }).toList(),
+    };
+    return jsonEncode(message);
+  }
+
   static void onMessageReceivedHost(message, DataConnection connection,
       Function(User user, DataConnection connection) addPlayerCallback) {
     final decodedMessage = _decodeMessage(message);
@@ -141,6 +169,11 @@ class CommunicationProtocol {
           final userId = decodedMessage[userIdField];
           final score = decodedMessage[scoreField];
           _onHostRecivedScoreFromPlayer(userId, score);
+        }
+      case playerRequestScoreValue:
+        {
+          final userId = decodedMessage[userIdField];
+          _onHostRecivedScoreRequest(userId);
         }
     }
   }
@@ -172,6 +205,15 @@ class CommunicationProtocol {
   static void _onHostRecivedScoreFromPlayer(String userId, int score) {
     final gameCubit = getIt.get<GameHostCubit>();
     gameCubit.onHostRecivedScoreFromPlayer(userId, score);
+  }
+
+  static void _onHostRecivedScoreRequest(String userId) {
+    final hostPeerSignaling = getIt.get<HostPeerSignaling>();
+    final score = getIt.get<Score>();
+    hostPeerSignaling.sendMessageToUser(
+        userId,
+        CommunicationProtocol.hostAnswerOtherPlayersScoreMessage(
+            score.usersScore));
   }
 
   static void onMessageReceivedPlayer(message, VoidCallback callback) {
@@ -206,6 +248,11 @@ class CommunicationProtocol {
         {
           onPlayerShowAnswer();
         }
+      case hostAnswerScoreValue:
+        {
+          final usersScore = decodedMessage[scoreListField];
+          onPlayerRecivedScoreFromOtherPlayers(usersScore);
+        }
     }
   }
 
@@ -239,5 +286,17 @@ class CommunicationProtocol {
   static void onPlayerEndOfTheRound() {
     final gamePlayerCubit = getIt.get<GamePlayerCubit>();
     gamePlayerCubit.onPlayerEndOfTheRound();
+  }
+
+  static void onPlayerRecivedScoreFromOtherPlayers(List<dynamic> usersScore) {
+    final usersScoreList = usersScore.map<MapEntry<User, int>>((entry) {
+      final userMap = entry[userField];
+      final score = entry[scoreField];
+      final user = User.fromJson(userMap);
+
+      return MapEntry(user, score);
+    }).toList();
+    final leaderboardCubit = getIt.get<LeaderboardCubit>();
+    leaderboardCubit.onRecivedScoreFromOtherPlayersAsync(usersScoreList);
   }
 }
