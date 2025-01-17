@@ -157,8 +157,6 @@ class GamePlayerCubit extends Cubit<GamePlayerState> {
   }
 
   void onPlayerEndOfGame() {
-    //joiningPeerSignaling.close();
-    //timer?.cancel();
     debugPrint("end of game");
     emit(state.copyWith(endOfGame: true));
   }

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:oauth2_client/access_token_response.dart';
 import 'package:oauth2_client/spotify_oauth2_client.dart';
 import 'package:spotify/spotify.dart';
 import 'dart:async';
@@ -50,9 +49,6 @@ class AuthorizationService {
           clientId: clientId,
           clientSecret: clientSecret,
           scopes: scopes);
-
-      // for testo
-      //await oAuth2Helper.removeAllTokens();
 
       final tokenResponse = await oAuth2Helper.getToken();
 

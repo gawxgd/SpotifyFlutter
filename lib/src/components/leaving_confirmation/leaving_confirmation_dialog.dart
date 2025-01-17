@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:spotify_flutter/src/app.dart';
 
 class LeavingConfirmationDialog extends StatelessWidget {
   const LeavingConfirmationDialog({super.key});
@@ -8,30 +7,30 @@ class LeavingConfirmationDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-          title: const Text('Are you sure?'),
-          content: const Text(
-            'Are you sure you want to leave this game, it will close all connections?',
+      title: const Text('Are you sure?'),
+      content: const Text(
+        'Are you sure you want to leave this game, it will close all connections?',
+      ),
+      actions: <Widget>[
+        TextButton(
+          style: TextButton.styleFrom(
+            textStyle: Theme.of(context).textTheme.labelLarge,
           ),
-          actions: <Widget>[
-            TextButton(
-              style: TextButton.styleFrom(
-                textStyle: Theme.of(context).textTheme.labelLarge,
-              ),
-              child: const Text('Nevermind'),
-              onPressed: () {
-                context.pop(false);
-              },
-            ),
-            TextButton(
-              style: TextButton.styleFrom(
-                textStyle: Theme.of(context).textTheme.labelLarge,
-              ),
-              child: const Text('Leave'),
-              onPressed: () {
-                context.pop(true);
-              },
-            ),
-          ],
-        );
+          child: const Text('Nevermind'),
+          onPressed: () {
+            context.pop(false);
+          },
+        ),
+        TextButton(
+          style: TextButton.styleFrom(
+            textStyle: Theme.of(context).textTheme.labelLarge,
+          ),
+          child: const Text('Leave'),
+          onPressed: () {
+            context.pop(true);
+          },
+        ),
+      ],
+    );
   }
 }

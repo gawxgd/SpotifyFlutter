@@ -69,7 +69,6 @@ class JoinGameCubit extends Cubit<JoinGameState> {
   }
 
   Future<void> connectToGame(String roomId) async {
-    // toDo make an error event handler
     try {
       await connectToRoom(roomId);
       if (!state.isConnectionFailed) {

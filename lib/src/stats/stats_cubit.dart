@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:spotify/spotify.dart';
 import 'package:spotify_flutter/src/dependency_injection.dart';
@@ -72,7 +71,7 @@ class StatsCubit extends Cubit<StatsState> {
   }
 
   Future<void> fetchSongsAndArtists() async {
-    emit(StatsState(isLoading: true));
+    emit(const StatsState(isLoading: true));
     try {
       final spotifyApi = getIt.get<SpotifyApi>();
       final songs = await fetchTopSongs(spotifyApi);

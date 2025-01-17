@@ -34,6 +34,7 @@ dependencies:
   peerdart: any
   flutter_bloc: ^8.1.6
   vibration: ^2.0.1
+  flutter_dotenv: ^5.2.1
   
 dependency_overrides:
   flutter_webrtc: ^0.12.5
@@ -45,6 +46,8 @@ dev_dependencies:
   flutter_launcher_icons: ^0.13.1
 
   flutter_lints: ^4.0.0
+  leancode_lint: ^14.2.0
+  custom_lint: ^0.6.4
 
 flutter:
   uses-material-design: true
@@ -55,6 +58,8 @@ flutter:
   assets:
     # Add assets from the images directory to the application.
     - assets/images/
+    - secrets.env
+    
 
 flutter_icons:
   android: true

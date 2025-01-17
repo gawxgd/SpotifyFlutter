@@ -115,9 +115,7 @@ class ProfileViewContent extends StatelessWidget {
                         borderRadius: BorderRadius.circular(8),
                       ),
                     ),
-                    onPressed: () {
-                      // Implement URL launch logic here
-                    },
+                    onPressed: () {},
                   ),
                   const SizedBox(height: 20),
                   ElevatedButton.icon(

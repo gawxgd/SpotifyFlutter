@@ -6,7 +6,6 @@ import 'package:spotify_flutter/src/components/song_component.dart';
 import 'package:spotify_flutter/src/components/square_user_component.dart';
 import 'package:spotify_flutter/src/components/timer_widget.dart';
 import 'package:spotify_flutter/src/end_of_game/end_of_game_view.dart';
-import 'package:spotify_flutter/src/game_host/game_cubit.dart';
 import 'package:spotify_flutter/src/game_player/game_player_cubit.dart';
 import 'package:spotify_flutter/src/leaderboard/leaderboard_view.dart';
 import 'package:vibration/vibration.dart';

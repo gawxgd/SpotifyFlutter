@@ -1,5 +1,3 @@
-import 'dart:ui';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:peerdart/peerdart.dart';
@@ -10,12 +8,11 @@ class JoiningPeerSignaling extends PeerSignalingBase {
 
   String? remotePeerId;
 
-  /// Join a room using the room ID
   Future<void> joinRoom(String roomId,
       {required VoidCallback onOpen,
       required VoidCallback onError,
       required VoidCallback onClosed}) async {
-    await initializePeer(); // Ensure peer is initialized and opened
+    await initializePeer();
 
     DocumentSnapshot snapshot = await _db.collection('rooms').doc(roomId).get();
 

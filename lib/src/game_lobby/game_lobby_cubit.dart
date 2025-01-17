@@ -114,7 +114,6 @@ class GameLobbyCubit extends Cubit<GameLobbyState> {
   }
 
   Future<void> shareDeepLink(BuildContext context) async {
-    // get rid of buildContext
     final result =
         await Share.share('Play GrooveCheck with me ${state.deepLink}');
 

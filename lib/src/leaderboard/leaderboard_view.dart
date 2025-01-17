@@ -30,9 +30,7 @@ class LeaderboardView extends StatelessWidget {
                 if (usersScore.isEmpty) {
                   return LeavingConfirmationPopscope(
                     onDispose: context.read<LeaderboardCubit>().leave,
-                    child: const Center(
-                      child: Text('No users in the leaderboard yet!'),
-                    ),
+                    child: const Center(child: CircularProgressIndicator()),
                   );
                 }
 
@@ -48,8 +46,7 @@ class LeaderboardView extends StatelessWidget {
                             style: TextStyle(
                               fontSize: 24,
                               fontWeight: FontWeight.bold,
-                              color: Theme.of(context)
-                                  .primaryColor, // Use primary color
+                              color: Theme.of(context).primaryColor,
                             ),
                           ),
                         ),

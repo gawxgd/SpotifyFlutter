@@ -18,9 +18,8 @@ class SquareUserComponent extends StatelessWidget {
 
   Future<bool> _isImageValid(String url) async {
     try {
-      final response =
-          await NetworkImage(url).obtainKey(const ImageConfiguration());
-      return response != null;
+      await NetworkImage(url).obtainKey(const ImageConfiguration());
+      return true;
     } catch (e) {
       return false;
     }

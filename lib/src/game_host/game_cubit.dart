@@ -113,7 +113,6 @@ class GameHostCubit extends Cubit<GameHostState> {
   void initialize() async {
     if (getIt.isRegistered<RoundConfig>()) {
       await nextRoundInitialization();
-      // send start next round message the other players should just navigate to gameplayer view and do the same
       await hostPeerSignaling
           .sendMessageAsync(CommunicationProtocol.hostStartNewRoundMessage());
       emit(state.copyWith(isGameLoaded: true));
@@ -128,8 +127,6 @@ class GameHostCubit extends Cubit<GameHostState> {
       final gameSettings = getIt.get<GameSettings>();
       defaultTime = gameSettings.questionTime;
       emit(state.copyWith(roundNumber: gameSettings.rounds));
-      debugPrint("there is ${gameSettings.rounds}");
-      debugPrint("there is gowno ${state.roundNumber}");
     }
     userIdToPoints = {};
     await loadUsers();
@@ -145,8 +142,6 @@ class GameHostCubit extends Cubit<GameHostState> {
     emit(GameHostState(roundConfig.users,
         userIdToSongs: roundConfig.userIdToSongs,
         roundNumber: roundConfig.roundNumber));
-    debugPrint("there is now ${state.roundNumber}");
-    debugPrint("there is now ${roundConfig.roundNumber}");
 
     question = getQuestion();
     emit(state.copyWith(currentTrack: question!.$2, currentUser: question!.$1));
@@ -200,8 +195,6 @@ class GameHostCubit extends Cubit<GameHostState> {
     updatedUserIdToSongs[userId] = songs;
 
     emit(state.copyWith(userIdToSongs: updatedUserIdToSongs));
-    debugPrint(
-        updatedUserIdToSongs.length.toString() + state.users.length.toString());
 
     if (updatedUserIdToSongs.length == state.users.length) {
       question = getQuestion();
@@ -264,7 +257,6 @@ class GameHostCubit extends Cubit<GameHostState> {
     getIt.registerSingleton(score);
 
     if (state.roundNumber != null) {
-      debugPrint("round number ${state.roundNumber}");
       if (state.roundNumber! - 1 >= 0) {
         emit(state.copyWith(roundNumber: state.roundNumber! - 1));
       } else {
@@ -283,7 +275,6 @@ class GameHostCubit extends Cubit<GameHostState> {
         roundNumber: state.roundNumber,
         userIdToSongs: state.userIdToSongs);
     getIt.registerSingleton(roundConfig);
-    debugPrint("new round with ${state.roundNumber}");
 
     await hostPeerSignaling
         .sendMessageAsync(CommunicationProtocol.endOfTheRoundMessage());
@@ -304,7 +295,6 @@ class GameHostCubit extends Cubit<GameHostState> {
   }
 
   void userAnswered(User choosenUser) {
-    // toDo wait for others to show correct answer
     scoreRecivedFromUsers.add(host!.id!);
 
     if (question != null && timer != null && timer!.isActive) {
@@ -315,10 +305,6 @@ class GameHostCubit extends Cubit<GameHostState> {
           var score = hostStat.$2;
           score++;
           userIdToPoints![host!.id!] = (user, score);
-          for (var item in scoreRecivedFromUsers) {
-            debugPrint("user1 + $item");
-          }
-          debugPrint(score.toString());
         }
         emit(state.copyWith(
             isCorrectAnswer: true,
@@ -359,15 +345,7 @@ class GameHostCubit extends Cubit<GameHostState> {
       userScore += score;
       userIdToPoints![userId] = (user, userScore);
       scoreRecivedFromUsers.add(userId);
-      for (var item in scoreRecivedFromUsers) {
-        debugPrint("user1 + $item");
-      }
-      debugPrint("${scoreRecivedFromUsers.length} + ${state.users.length}");
-      // if (scoreRecivedFromUsers.length >= state.users.length) {
-      //   canSkipQuestion = true;
-      //   emit(state.copyWith(canSkipQuestion: true));
-      //   debugPrint("you can skip question");
-      // }
+
       canSkipQuestion = true;
       emit(state.copyWith(canSkipQuestion: true));
     }

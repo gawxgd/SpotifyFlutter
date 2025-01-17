@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:peerdart/peerdart.dart';
-import 'package:spotify/spotify.dart';
 
 typedef OnMessageCallback = void Function(
     String message, DataConnection connection);
@@ -53,7 +52,6 @@ abstract class PeerSignalingBase {
     });
   }
 
-  /// Send a message to all peers
   void sendMessage(String message) {
     for (var connection in dataConnections) {
       if (connection.open) {
@@ -66,7 +64,6 @@ abstract class PeerSignalingBase {
   }
 
   Future<bool> sendMessageAsync(String message) async {
-    // false when one message has failed
     if (dataConnections.isEmpty) {
       debugPrint("data connection is empty");
       return false;
@@ -77,8 +74,6 @@ abstract class PeerSignalingBase {
         debugPrint('Sent message to ${connection.peer}: $message');
       } else {
         debugPrint('Connection to ${connection.peer} is not open.');
-        // remove closed connection here
-        //return false;
       }
     }
     return true;
@@ -96,7 +91,9 @@ abstract class PeerSignalingBase {
         peer.dispose();
         peer.close();
       }
-    } catch (e) {}
+    } catch (e) {
+      debugPrint(e.toString());
+    }
     debugPrint('Peer connection closed');
   }
 }

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:vibration/vibration.dart';
 
 class TimerWidget extends StatelessWidget {
   final int remainingTime;

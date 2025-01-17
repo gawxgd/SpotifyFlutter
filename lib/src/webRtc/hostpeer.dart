@@ -10,9 +10,8 @@ class HostPeerSignaling extends PeerSignalingBase {
   final FirebaseFirestore _db = FirebaseFirestore.instance;
   String? _roomId;
 
-  /// Create a new room and save the Peer ID to Firestore
   Future<String> createRoom(Function(User) onClosed) async {
-    await initializePeer(); // Ensure peer is initialized and opened
+    await initializePeer();
     if (localPeerId == null) {
       throw Exception('Peer ID is not initialized.');
     }
