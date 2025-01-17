@@ -3,7 +3,7 @@
 # Dokumentacja Projektu
 
 ## 📄 Opis Projektu
-Gra online multiplayer, w której gracze zgadują, jakiej muzyki słuchają ich znajomi. Użytkownicy logują się za pomocą swojego konta Spotify, przekazując tokeny dostępu do Spotify API. Aplikacja pobiera ich statystyki muzyczne, które następnie można przeglądać. Użytkownicy mają możliwość zarządzania ustawieniami aplikacji i edytowania swojego profilu.  
+Gra online multiplayer, w której gracze zgadują, jakiej muzyki słuchają ich znajomi. Użytkownicy logują się za pomocą swojego konta Spotify, przekazując tokeny dostępu do Spotify API. Aplikacja pobiera ich statystyki muzyczne, które następnie można przeglądać. Użytkownicy mają możliwość zarządzania ustawieniami aplikacji i przeglądanie swojego profilu.  
 
 Grę można rozpocząć na dwa sposoby:  
 1. **Dołączenie do istniejącej gry**: Wystarczy wpisać kod PIN pokoju.  
